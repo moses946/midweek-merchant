@@ -81,20 +81,27 @@ def bar(
 ) -> go.Figure:
     t = theme()
     kw = dict(x=df[y], y=df[x], orientation="h") if horizontal else dict(x=df[x], y=df[y])
+    # cap bar thickness at ~24px: width is a fraction of each category band
+    band_px = (height - 80) / max(len(df), 1) if horizontal else 700 / max(len(df), 1)
+    width = min(0.6, 24 / max(band_px, 1))
     fig = go.Figure(
         go.Bar(
             **kw,
             marker=dict(color=t["series"][0], cornerradius=4),
-            width=0.6,
+            width=width,
             hovertext=df[hover] if hover else None,
-            hovertemplate=("%{hovertext}<br>" if hover else "") + "%{x:.2f}<extra></extra>"
-            if horizontal
-            else None,
+            hovertemplate=(
+                ("%{hovertext}<br>" if hover else "")
+                + ("%{y}: %{x:.2f}" if horizontal else "%{x}: %{y:.2f}")
+                + "<extra></extra>"
+            ),
         )
     )
-    fig = _layout(fig, height=height, title=dict(text=title, font=dict(color=t["ink"])), bargap=0.35)
+    fig = _layout(fig, height=height, title=dict(text=title, font=dict(color=t["ink"])))
     if horizontal:
         fig.update_yaxes(autorange="reversed", showgrid=False)
+    else:
+        fig.update_xaxes(showgrid=False)
     return fig
 
 

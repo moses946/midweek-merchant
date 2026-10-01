@@ -131,3 +131,117 @@ def save_plan(
             **(extra or {}),
         },
     )
+
+
+# ---------------------------------------------------------------------- league & chips
+def rate_params(settings: Settings):  # noqa: ANN201
+    import json
+
+    import numpy as np
+
+    from midweek_merchant.models.player_rates import RateParams
+
+    meta = json.loads((settings.outputs_dir / "forecast_meta.json").read_text())["params"]
+    return RateParams(
+        meta["goal_calib"],
+        meta["assist_calib"],
+        meta["assist_per_goal"],
+        meta["avg_team_xg"],
+        meta["nb_size"],
+        {k: np.asarray(v) for k, v in meta["bonus_coef"].items()},
+    )
+
+
+def league_report(
+    settings: Settings,
+    league_id: int,
+    team_id: int,
+    my_state: TeamState | None = None,
+    horizon: int = 3,
+    k_plans: int = 3,
+    n_sims: int = 2000,
+    max_managers: int = 30,
+) -> dict[str, Any]:
+    from midweek_merchant.models.simulate import simulate
+    from midweek_merchant.strategy import league as lg
+
+    rules = load_rules(settings)
+    players = read_table(settings, "players")
+    events = read_table(settings, "events")
+    proj = load_projections(settings)
+    fx = pd.read_parquet(settings.outputs_dir / "fixture_xpts.parquet")
+    nxt = next_gameweek(events)
+    with FPLClient(cache_dir=settings.raw_dir / "fpl") as client:
+        meta, managers = lg.load_league(
+            client, league_id, players, rules, nxt, max_managers, settings.optimizer.ft_after_chip
+        )
+    me = next((m for m in managers if m.entry == team_id), None)
+    if me is None:
+        raise ValueError(f"Team {team_id} is not in league {league_id} (top {max_managers} checked)")
+    if my_state is not None:
+        me.state = my_state
+    rivals = [m for m in managers if m.entry != team_id and m.state is not None]
+    gws = [g for g in sorted(proj["gw"].unique()) if g >= nxt][:horizon]
+    for r in rivals:
+        lg.rival_lineups(r, proj, rules, gws)
+    opts = PlanOptions.from_config(
+        settings.optimizer, horizon=horizon, allow_chips=False, last_gw_chip=last_chip(me.state)
+    )
+    plans = planner.alternatives(proj, me.state, rules, opts, k=k_plans)
+    labels = ["max xPts"] + [f"alternative {k}" for k in range(1, len(plans))]
+    locks = lg.candidate_locks(lg.league_eo(rivals, gws[0]), set(me.state.elements), proj, gws)
+    for kind, els in locks.items():
+        for e in els:
+            p = planner.plan_transfers(proj, me.state, rules, replace(opts, locked={e}))
+            if p.weeks:
+                plans.append(p)
+                labels.append(f"{kind}: {proj.loc[proj['element'] == e, 'name'].iloc[0]}")
+    needed = {e for p in plans for w in p.weeks for e in w.squad}
+    for r in rivals:
+        needed |= {p.element for p in r.state.squad}
+    sim = simulate(fx[fx["gw"].isin(gws)], rate_params(settings), rules, n_sims=n_sims, elements=needed)
+    res = lg.analyse(me, rivals, plans, sim, proj, gws, weeks_left_after=38 - gws[-1], plan_labels=labels)
+    return {
+        "league": {"id": league_id, "name": meta.get("name", "")},
+        "gws": [int(g) for g in gws],
+        "me": me.name,
+        "advice": res.advice,
+        "z": res.z,
+        "standings": res.standings.to_dict("records"),
+        "eo": res.eo.to_dict("records"),
+        "plans": res.plans.to_dict("records"),
+        "captains": res.captains.to_dict("records"),
+        "head_to_head": res.head_to_head.to_dict("records"),
+        "plan_weeks": [plan_table(p, proj) for p in plans],
+        "best_plan": res.best_plan,
+        "rival_chips": [
+            {
+                "manager": r.name,
+                "chips_left": r.state.chips_available,
+                "bank": r.state.bank / 10,
+                "free_transfers": r.state.free_transfers,
+            }
+            for r in rivals
+        ],
+    }
+
+
+def chip_report(settings: Settings, state: TeamState, horizon: int = 6, exact: bool = True) -> dict[str, Any]:
+    from midweek_merchant.optimize import chips as ch
+
+    rules = load_rules(settings)
+    proj = load_projections(settings)
+    opts = PlanOptions.from_config(settings.optimizer, horizon=horizon, last_gw_chip=last_chip(state))
+    if exact:
+        baseline, exact_df = ch.exact_values(proj, state, rules, opts)
+    else:
+        baseline = planner.plan_transfers(proj, state, rules, replace(opts, allow_chips=False))
+        exact_df = pd.DataFrame(columns=["chip", "gw", "total_xpts", "gain", "status"])
+    quick = ch.quick_values(baseline, proj, state, rules, opts)
+    return {
+        "baseline_xpts": baseline.total_xpts,
+        "quick": quick.to_dict("records"),
+        "exact": exact_df.to_dict("records"),
+        "option_values": opts.chip_option_value,
+        "chips_available": state.chips_available,
+    }

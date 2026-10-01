@@ -197,6 +197,7 @@ def save_forecast(settings: Settings, fc: Forecast) -> None:
         "rc90",
         "xpts",
         "position",
+        "rho",
     ]
     write_output(settings, "fixture_xpts.parquet", fc.fixture_rows[keep])
     write_output(
