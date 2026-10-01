@@ -19,7 +19,7 @@ class ForecastConfig(BaseModel):
     market_weight_next: float = 0.9
     market_weight_decay: float = 0.6
     player_half_life_matches: float = 12
-    prior_matches: float = 8
+    prior_matches: float = 5
     n_sims: int = 3000
 
 

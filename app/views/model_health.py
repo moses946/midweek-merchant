@@ -50,7 +50,7 @@ else:
     )
     top = pd.DataFrame(summ["top_picks"])
     c2.markdown("**Average actual points of each gameweek's top-10 picks**")
-    c2.dataframe(top, hide_index=True, width="stretch")
+    c2.dataframe(top.round(2), hide_index=True, width="stretch")
 
 st.subheader("This season, live")
 from midweek_merchant.backtest.run import live_tracking  # noqa: E402

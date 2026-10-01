@@ -13,7 +13,7 @@ forecast:
   market_weight_next: 0.9    # weight on odds-implied lambdas for the next GW
   market_weight_decay: 0.6   # multiplicative decay of market weight per GW further out
   player_half_life_matches: 12
-  prior_matches: 8           # empirical-Bayes prior strength (full matches)
+  prior_matches: 5           # empirical-Bayes prior strength (full matches); tuned by backtest
   n_sims: 3000
 
 optimizer:

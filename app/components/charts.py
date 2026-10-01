@@ -14,12 +14,12 @@ def _layout(fig: go.Figure, height: int = 420, **kw) -> go.Figure:  # noqa: ANN0
     t = theme()
     fig.update_layout(
         height=height,
-        margin=dict(l=8, r=8, t=36, b=8),
+        margin=dict(l=48, r=16, t=56, b=48),
         paper_bgcolor=t["surface"],
         plot_bgcolor=t["surface"],
         font=dict(family=FONT, color=t["ink2"], size=12),
         hoverlabel=dict(font=dict(family=FONT)),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0, font=dict(color=t["ink2"])),
+        legend=dict(orientation="h", yanchor="top", y=-0.22, x=0, font=dict(color=t["ink2"])),
         **kw,
     )
     fig.update_xaxes(
@@ -164,4 +164,9 @@ def scatter_calibration(df: pd.DataFrame, x: str, y: str, title: str) -> go.Figu
             hovertemplate="predicted %{x:.2f}<br>actual %{y:.2f}<extra></extra>",
         )
     )
-    return _layout(fig, height=360, title=dict(text=title, font=dict(color=t["ink"])))
+    fig = _layout(fig, height=380, title=dict(text=title, font=dict(color=t["ink"])))
+    fig.update_xaxes(title=dict(text="Predicted xPts", font=dict(color=t["ink2"])))
+    fig.update_yaxes(title=dict(text="Actual points", font=dict(color=t["ink2"])))
+    # the top-left of a calibration plot is empty: keep the legend there, clear of the axis titles
+    fig.update_layout(legend=dict(orientation="v", x=0.02, y=0.98, yanchor="top", bgcolor="rgba(0,0,0,0)"))
+    return fig

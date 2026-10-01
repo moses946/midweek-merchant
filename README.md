@@ -60,7 +60,8 @@ To configure it, go to **Settings → Secrets and variables → Actions**:
 **Hosting the dashboard:** deploy `app/streamlit_app.py` from this repo on
 [Streamlit Community Cloud](https://streamlit.io/cloud). `requirements.txt` installs the package. With no local
 data, the app downloads the latest bundle from the `data` branch. Interactive planning, chips and league analysis
-run live in the app.
+run live in the app. To pre-fill your IDs there, add root-level `FPL_TEAM_ID` / `FPL_LEAGUE_ID` entries to the
+app's Streamlit secrets; Streamlit exposes root-level secrets as environment variables.
 
 ## How it works
 
@@ -114,6 +115,19 @@ run live in the app.
   - behind: chase with swords;
   - ahead: cover shields;
   - close: maximise xPts.
+
+### Backtest (2025-26, 35 gameweeks, about 27k player-gameweeks)
+
+The test is rolling-origin: each gameweek is predicted using only earlier data plus the market's *opening* odds.
+
+| Predictor | RMSE (all) | RMSE (played) | Avg points of weekly top-10 picks |
+|---|---|---|---|
+| **This model** | **2.00** | **2.94** | **5.1** |
+| Recent form (last 4) | 2.35 | 3.21 | 3.2 |
+| FPL xP (archived; recording time unclear) | 2.45 | 3.94 | 2.4 |
+
+Calibration is close to the diagonal across deciles. Re-run with `uv run mm backtest`. The scheduled job refreshes
+it weekly, and the Model health page shows it.
 
 ### Verified rule details
 
