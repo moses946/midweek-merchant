@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class ForecastConfig(BaseModel):
     horizon: int = 8
-    team_decay_per_day: float = 0.0019
+    team_decay_per_day: float = 0.003
     xg_weight: float = 0.6
     market_weight_next: float = 0.9
     market_weight_decay: float = 0.6

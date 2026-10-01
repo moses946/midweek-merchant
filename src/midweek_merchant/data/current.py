@@ -18,25 +18,56 @@ log = logging.getLogger(__name__)
 
 # event/live stat -> standard column
 LIVE_MAP = {
-    "minutes": "minutes", "starts": "starts", "goals_scored": "goals", "assists": "assists",
-    "expected_goals": "xg", "expected_assists": "xa", "expected_goals_conceded": "xgc",
-    "clean_sheets": "cs", "goals_conceded": "gc", "saves": "saves", "bonus": "bonus", "bps": "bps",
-    "yellow_cards": "yc", "red_cards": "rc", "own_goals": "og", "penalties_saved": "pen_saved",
-    "penalties_missed": "pen_missed", "defensive_contribution": "dc",
-    "clearances_blocks_interceptions": "cbi", "tackles": "tackles", "recoveries": "recoveries",
+    "minutes": "minutes",
+    "starts": "starts",
+    "goals_scored": "goals",
+    "assists": "assists",
+    "expected_goals": "xg",
+    "expected_assists": "xa",
+    "expected_goals_conceded": "xgc",
+    "clean_sheets": "cs",
+    "goals_conceded": "gc",
+    "saves": "saves",
+    "bonus": "bonus",
+    "bps": "bps",
+    "yellow_cards": "yc",
+    "red_cards": "rc",
+    "own_goals": "og",
+    "penalties_saved": "pen_saved",
+    "penalties_missed": "pen_missed",
+    "defensive_contribution": "dc",
+    "clearances_blocks_interceptions": "cbi",
+    "tackles": "tackles",
+    "recoveries": "recoveries",
 }
 # Stats whose per-fixture value is exact in ``explain`` (when present); others are split by minutes.
-EXPLAIN_EXACT = {"minutes", "goals_scored", "assists", "clean_sheets", "saves", "bonus", "yellow_cards",
-                 "red_cards", "own_goals", "penalties_saved", "penalties_missed"}
+EXPLAIN_EXACT = {
+    "minutes",
+    "goals_scored",
+    "assists",
+    "clean_sheets",
+    "saves",
+    "bonus",
+    "yellow_cards",
+    "red_cards",
+    "own_goals",
+    "penalties_saved",
+    "penalties_missed",
+}
 
 
 def teams_table(bootstrap: dict[str, Any]) -> pd.DataFrame:
     rows = []
     for t in bootstrap["teams"]:
-        rows.append({
-            "team_id": t["id"], "code": t["code"], "team": team_from_code(t["code"], t["name"]),
-            "fpl_name": t["name"], "short_name": t["short_name"],
-        })
+        rows.append(
+            {
+                "team_id": t["id"],
+                "code": t["code"],
+                "team": team_from_code(t["code"], t["name"]),
+                "fpl_name": t["name"],
+                "short_name": t["short_name"],
+            }
+        )
     return pd.DataFrame(rows)
 
 
@@ -45,30 +76,46 @@ def players_table(bootstrap: dict[str, Any]) -> pd.DataFrame:
     rows = []
     for e in bootstrap["elements"]:
         t = teams[e["team"]]
-        rows.append({
-            "element": e["id"], "code": e["code"], "name": e["web_name"],
-            "full_name": f'{e["first_name"]} {e["second_name"]}'.strip(),
-            "position": POSITIONS[e["element_type"]], "team_id": e["team"],
-            "team": team_from_code(t["code"], t["name"]), "team_short": t["short_name"],
-            "now_cost": e["now_cost"], "cost_change_start": e["cost_change_start"],
-            "cost_change_event": e["cost_change_event"],
-            "status": e["status"], "news": e["news"] or "", "news_added": e["news_added"],
-            "chance_next": e["chance_of_playing_next_round"], "chance_this": e["chance_of_playing_this_round"],
-            "selected_by_percent": float(e["selected_by_percent"] or 0),
-            "penalties_order": e["penalties_order"], "corners_order": e["corners_and_indirect_freekicks_order"],
-            "freekicks_order": e["direct_freekicks_order"],
-            "ep_next": float(e["ep_next"] or 0), "form": float(e["form"] or 0),
-            "total_points": e["total_points"], "minutes_season": e["minutes"],
-            "transfers_in_event": e["transfers_in_event"], "transfers_out_event": e["transfers_out_event"],
-            "price_change_percent": _to_float(e.get("price_change_percent")),
-            "price_change_hourly_rate": e.get("price_change_hourly_rate"),
-            "price_change_projections": json.dumps(e.get("price_change_projections") or []),
-            "price_change_locked_until": e.get("price_change_locked_until"),
-            "price_change_calibrating": bool(e.get("price_change_calibrating")),
-            "scout_risk_gws": json.dumps(sorted({r.get("gameweek") for r in (e.get("scout_risks") or [])
-                                                 if r.get("gameweek")})),
-            "can_select": bool(e.get("can_select", True)), "removed": bool(e.get("removed", False)),
-        })
+        rows.append(
+            {
+                "element": e["id"],
+                "code": e["code"],
+                "name": e["web_name"],
+                "full_name": f"{e['first_name']} {e['second_name']}".strip(),
+                "position": POSITIONS[e["element_type"]],
+                "team_id": e["team"],
+                "team": team_from_code(t["code"], t["name"]),
+                "team_short": t["short_name"],
+                "now_cost": e["now_cost"],
+                "cost_change_start": e["cost_change_start"],
+                "cost_change_event": e["cost_change_event"],
+                "status": e["status"],
+                "news": e["news"] or "",
+                "news_added": e["news_added"],
+                "chance_next": e["chance_of_playing_next_round"],
+                "chance_this": e["chance_of_playing_this_round"],
+                "selected_by_percent": float(e["selected_by_percent"] or 0),
+                "penalties_order": e["penalties_order"],
+                "corners_order": e["corners_and_indirect_freekicks_order"],
+                "freekicks_order": e["direct_freekicks_order"],
+                "ep_next": float(e["ep_next"] or 0),
+                "form": float(e["form"] or 0),
+                "total_points": e["total_points"],
+                "minutes_season": e["minutes"],
+                "transfers_in_event": e["transfers_in_event"],
+                "transfers_out_event": e["transfers_out_event"],
+                "price_change_percent": _to_float(e.get("price_change_percent")),
+                "price_change_hourly_rate": e.get("price_change_hourly_rate"),
+                "price_change_projections": json.dumps(e.get("price_change_projections") or []),
+                "price_change_locked_until": e.get("price_change_locked_until"),
+                "price_change_calibrating": bool(e.get("price_change_calibrating")),
+                "scout_risk_gws": json.dumps(
+                    sorted({r.get("gameweek") for r in (e.get("scout_risks") or []) if r.get("gameweek")})
+                ),
+                "can_select": bool(e.get("can_select", True)),
+                "removed": bool(e.get("removed", False)),
+            }
+        )
     return pd.DataFrame(rows)
 
 
@@ -82,17 +129,25 @@ def events_table(bootstrap: dict[str, Any]) -> pd.DataFrame:
 def fixtures_table(fixtures: list[dict[str, Any]], teams: pd.DataFrame, season: str) -> pd.DataFrame:
     tmap = dict(zip(teams["team_id"], teams["team"], strict=True))
     df = pd.DataFrame(fixtures)
-    out = pd.DataFrame({
-        "season": season, "league": "E0", "gw": df["event"], "fixture": df["id"],
-        "kickoff_time": pd.to_datetime(df["kickoff_time"], utc=True),
-        "home": df["team_h"].map(tmap), "away": df["team_a"].map(tmap),
-        "home_id": df["team_h"], "away_id": df["team_a"],
-        "hg": pd.to_numeric(df["team_h_score"], errors="coerce"),
-        "ag": pd.to_numeric(df["team_a_score"], errors="coerce"),
-        "finished": df["finished"].astype(bool) | df["finished_provisional"].astype(bool),
-        "started": df["started"].fillna(False).astype(bool),
-        "home_fdr": df["team_h_difficulty"], "away_fdr": df["team_a_difficulty"],
-    })
+    out = pd.DataFrame(
+        {
+            "season": season,
+            "league": "E0",
+            "gw": df["event"],
+            "fixture": df["id"],
+            "kickoff_time": pd.to_datetime(df["kickoff_time"], utc=True),
+            "home": df["team_h"].map(tmap),
+            "away": df["team_a"].map(tmap),
+            "home_id": df["team_h"],
+            "away_id": df["team_a"],
+            "hg": pd.to_numeric(df["team_h_score"], errors="coerce"),
+            "ag": pd.to_numeric(df["team_a_score"], errors="coerce"),
+            "finished": df["finished"].astype(bool) | df["finished_provisional"].astype(bool),
+            "started": df["started"].fillna(False).astype(bool),
+            "home_fdr": df["team_h_difficulty"],
+            "away_fdr": df["team_a_difficulty"],
+        }
+    )
     out["date"] = out["kickoff_time"].dt.tz_convert("Europe/London").dt.date.astype(str)
     return out
 
@@ -131,8 +186,14 @@ def player_matches(
             for fid, st in per_fix:
                 fxr = fx.loc[fid]
                 row: dict[str, Any] = {
-                    "season": season, "gw": gw, "fixture": fid, "kickoff_time": fxr["kickoff_time"],
-                    "code": p["code"], "element": eid, "name": p["name"], "position": p["position"],
+                    "season": season,
+                    "gw": gw,
+                    "fixture": fid,
+                    "kickoff_time": fxr["kickoff_time"],
+                    "code": p["code"],
+                    "element": eid,
+                    "name": p["name"],
+                    "position": p["position"],
                 }
                 team_id = int(p["team_id"])
                 if team_id == fxr["home_id"]:

@@ -35,11 +35,16 @@ def season_code(season: str) -> str:
 
 
 # ------------------------------------------------------------------ football-data.co.uk
-def load_fd(settings: Settings, season: str, league: str = "E0", max_age: float | None = 6 * 3600) -> pd.DataFrame:
+def load_fd(
+    settings: Settings, season: str, league: str = "E0", max_age: float | None = 6 * 3600
+) -> pd.DataFrame:
     dest = settings.raw_dir / "football_data" / f"{league}_{season_code(season)}.csv"
     is_current = season == settings.season
-    download(f"{FD_BASE}/mmz4281/{season_code(season)}/{league}.csv", dest,
-             max_age=max_age if is_current else 30 * 86400)
+    download(
+        f"{FD_BASE}/mmz4281/{season_code(season)}/{league}.csv",
+        dest,
+        max_age=max_age if is_current else 30 * 86400,
+    )
     df = pd.read_csv(dest, encoding="utf-8-sig", on_bad_lines="skip")
     df = df.dropna(subset=["HomeTeam", "AwayTeam"])
     return _standardise_fd(df, season, league)
@@ -55,17 +60,25 @@ def load_fd_fixtures(settings: Settings, max_age: float = 3 * 3600) -> pd.DataFr
 
 def _standardise_fd(df: pd.DataFrame, season: str, league: str) -> pd.DataFrame:
     date = pd.to_datetime(df["Date"], dayfirst=True, errors="coerce")
-    out = pd.DataFrame({
-        "season": season, "league": league, "date": date.dt.date.astype(str),
-        "home": df["HomeTeam"].str.strip(), "away": df["AwayTeam"].str.strip(),
-        "hg": pd.to_numeric(df.get("FTHG"), errors="coerce"),
-        "ag": pd.to_numeric(df.get("FTAG"), errors="coerce"),
-        "hxg_fd": pd.to_numeric(df.get("HxG"), errors="coerce") if "HxG" in df else np.nan,
-        "axg_fd": pd.to_numeric(df.get("AxG"), errors="coerce") if "AxG" in df else np.nan,
-    })
+    out = pd.DataFrame(
+        {
+            "season": season,
+            "league": league,
+            "date": date.dt.date.astype(str),
+            "home": df["HomeTeam"].str.strip(),
+            "away": df["AwayTeam"].str.strip(),
+            "hg": pd.to_numeric(df.get("FTHG"), errors="coerce"),
+            "ag": pd.to_numeric(df.get("FTAG"), errors="coerce"),
+            "hxg_fd": pd.to_numeric(df.get("HxG"), errors="coerce") if "HxG" in df else np.nan,
+            "axg_fd": pd.to_numeric(df.get("AxG"), errors="coerce") if "AxG" in df else np.nan,
+        }
+    )
     # Opening (pre-closing) market averages; fall back to Bet365 then max.
     for prefix_sets, names in (
-        ((("AvgH", "AvgD", "AvgA"), ("B365H", "B365D", "B365A"), ("MaxH", "MaxD", "MaxA")), ("oh", "od", "oa")),
+        (
+            (("AvgH", "AvgD", "AvgA"), ("B365H", "B365D", "B365A"), ("MaxH", "MaxD", "MaxA")),
+            ("oh", "od", "oa"),
+        ),
         ((("AvgCH", "AvgCD", "AvgCA"), ("B365CH", "B365CD", "B365CA")), ("ch", "cd", "ca")),
         ((("Avg>2.5", "Avg<2.5"), ("B365>2.5", "B365<2.5")), ("o_over", "o_under")),
         ((("AvgC>2.5", "AvgC<2.5"), ("B365C>2.5", "B365C<2.5")), ("c_over", "c_under")),
@@ -97,8 +110,10 @@ def fetch_odds_api(settings: Settings, force: bool = False, deadline: datetime |
     if not (force or due):
         return _parse_odds_api(cache)
     params = {
-        "apiKey": settings.odds_api_key, "regions": settings.odds.regions,
-        "markets": settings.odds.markets, "oddsFormat": "decimal",
+        "apiKey": settings.odds_api_key,
+        "regions": settings.odds.regions,
+        "markets": settings.odds.markets,
+        "oddsFormat": "decimal",
     }
     try:
         resp = httpx.get(ODDS_API, params=params, timeout=30)
@@ -125,14 +140,24 @@ def _parse_odds_api(path: Path) -> pd.DataFrame:
             for m in bk.get("markets", []):
                 oc = {o["name"]: o for o in m.get("outcomes", [])}
                 if m["key"] == "h2h" and {ev["home_team"], ev["away_team"], "Draw"} <= oc.keys():
-                    h2h.append((oc[ev["home_team"]]["price"], oc["Draw"]["price"], oc[ev["away_team"]]["price"]))
+                    h2h.append(
+                        (oc[ev["home_team"]]["price"], oc["Draw"]["price"], oc[ev["away_team"]]["price"])
+                    )
                 elif m["key"] == "totals" and {"Over", "Under"} <= oc.keys():
                     totals.append((oc["Over"].get("point", 2.5), oc["Over"]["price"], oc["Under"]["price"]))
         if not h2h:
             continue
         probs = np.mean([devig(np.array(o)) for o in h2h], axis=0)
-        row = {"commence_time": ev["commence_time"], "home": home, "away": away,
-               "p_home": probs[0], "p_draw": probs[1], "p_away": probs[2], "line": np.nan, "p_over": np.nan}
+        row = {
+            "commence_time": ev["commence_time"],
+            "home": home,
+            "away": away,
+            "p_home": probs[0],
+            "p_draw": probs[1],
+            "p_away": probs[2],
+            "line": np.nan,
+            "p_over": np.nan,
+        }
         if totals:
             lines = pd.Series([t[0] for t in totals])
             line = float(lines.mode().iloc[0])
@@ -176,16 +201,28 @@ def _score_matrix(lh: float, la: float, rho: float = 0.0, max_goals: int = 10) -
     return m
 
 
-def outcome_probs(lh: float, la: float, rho: float = 0.0, line: float = 2.5) -> tuple[float, float, float, float]:
+def outcome_probs(
+    lh: float, la: float, rho: float = 0.0, line: float = 2.5
+) -> tuple[float, float, float, float]:
     m = _score_matrix(lh, la, rho)
     g = np.arange(m.shape[0])
     tot = g[:, None] + g[None, :]
-    return (float(np.tril(m, -1).sum()), float(np.trace(m)), float(np.triu(m, 1).sum()),
-            float(m[tot > line].sum()))
+    return (
+        float(np.tril(m, -1).sum()),
+        float(np.trace(m)),
+        float(np.triu(m, 1).sum()),
+        float(m[tot > line].sum()),
+    )
 
 
-def implied_lambdas(p_home: float, p_draw: float, p_away: float, p_over: float | None = None,
-                    line: float = 2.5, rho: float = -0.05) -> tuple[float, float]:
+def implied_lambdas(
+    p_home: float,
+    p_draw: float,
+    p_away: float,
+    p_over: float | None = None,
+    line: float = 2.5,
+    rho: float = -0.05,
+) -> tuple[float, float]:
     """Solve for Poisson goal expectancies that reproduce the market probabilities."""
     target = np.array([p_home, p_draw, p_away])
     use_total = p_over is not None and np.isfinite(p_over)
@@ -198,8 +235,12 @@ def implied_lambdas(p_home: float, p_draw: float, p_away: float, p_over: float |
             err += (po - p_over) ** 2
         return float(err)
 
-    res = minimize(loss, x0=np.log([1.5, 1.2]), method="Nelder-Mead",
-                   options={"xatol": 1e-6, "fatol": 1e-12, "maxiter": 2000})
+    res = minimize(
+        loss,
+        x0=np.log([1.5, 1.2]),
+        method="Nelder-Mead",
+        options={"xatol": 1e-6, "fatol": 1e-12, "maxiter": 2000},
+    )
     lh, la = np.exp(res.x)
     return float(lh), float(la)
 

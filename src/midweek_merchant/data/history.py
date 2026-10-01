@@ -39,7 +39,9 @@ def _fetch(settings: Settings, season: str, rel: str, max_age: float | None) -> 
     return pd.read_csv(dest, encoding="utf-8", low_memory=False)
 
 
-def load_season(settings: Settings, season: str, max_age: float | None = 30 * 86400) -> tuple[pd.DataFrame, pd.DataFrame]:
+def load_season(
+    settings: Settings, season: str, max_age: float | None = 30 * 86400
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Return (player_matches, team_matches) for a past season in standard columns."""
     gw = _fetch(settings, season, "gws/merged_gw.csv", max_age)
     players = _fetch(settings, season, "players_raw.csv", max_age)
@@ -63,14 +65,21 @@ def load_season(settings: Settings, season: str, max_age: float | None = 30 * 86
             df[col] = pd.NA
     df["kickoff_time"] = pd.to_datetime(df["kickoff_time"], utc=True)
     pm = df[PM_COLS].copy()
-    num = [c for c in PM_COLS if c not in ("season", "kickoff_time", "name", "position", "team", "opponent", "was_home")]
+    num = [
+        c
+        for c in PM_COLS
+        if c not in ("season", "kickoff_time", "name", "position", "team", "opponent", "was_home")
+    ]
     pm[num] = pm[num].apply(pd.to_numeric, errors="coerce")
 
     # Team-level match table; team xG = sum of player xG per side.
     fx = fixtures.copy()
     fx["kickoff_time"] = pd.to_datetime(fx["kickoff_time"], utc=True)
     side_xg = (
-        pm.groupby(["fixture", "was_home"])["xg"].sum().unstack("was_home").rename(columns={True: "hxg", False: "axg"})
+        pm.groupby(["fixture", "was_home"])["xg"]
+        .sum()
+        .unstack("was_home")
+        .rename(columns={True: "hxg", False: "axg"})
     )
     tm = pd.DataFrame(
         {

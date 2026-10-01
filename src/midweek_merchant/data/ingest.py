@@ -95,8 +95,13 @@ def ingest(settings: Settings, history_refresh: bool = True, use_odds_api: bool 
     market = _market_lambdas(up)
     write_table(settings, "market_odds", market)
 
-    counts = {"players": len(players), "player_matches": len(pm), "current_rows": len(pm_cur),
-              "team_matches": len(tm_e0), "market_fixtures": len(market)}
+    counts = {
+        "players": len(players),
+        "player_matches": len(pm),
+        "current_rows": len(pm_cur),
+        "team_matches": len(tm_e0),
+        "market_fixtures": len(market),
+    }
     log.info("ingest complete: %s", counts)
     return counts
 
@@ -115,13 +120,22 @@ def _market_lambdas(frames: list[pd.DataFrame]) -> pd.DataFrame:
             if r.get("source") == "the-odds-api":
                 p_over = r.get("p_over")
                 line = r.get("line") if np.isfinite(r.get("line", np.nan)) else 2.5
-                lh, la = odds.implied_lambdas(r["p_home"], r["p_draw"], r["p_away"],
-                                              p_over if np.isfinite(p_over) else None, line)
+                lh, la = odds.implied_lambdas(
+                    r["p_home"], r["p_draw"], r["p_away"], p_over if np.isfinite(p_over) else None, line
+                )
             else:
                 lh, la = odds.fd_row_lambdas(pd.Series(r))
             if np.isfinite(lh):
-                rows.append({"date": r["date"], "home": r["home"], "away": r["away"], "lh": lh, "la": la,
-                             "source": r["source"]})
+                rows.append(
+                    {
+                        "date": r["date"],
+                        "home": r["home"],
+                        "away": r["away"],
+                        "lh": lh,
+                        "la": la,
+                        "source": r["source"],
+                    }
+                )
     cols = ["date", "home", "away", "lh", "la", "source"]
     if not rows:
         return pd.DataFrame(columns=cols)

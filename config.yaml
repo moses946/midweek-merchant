@@ -8,7 +8,7 @@ history_seasons: ["2023-24", "2024-25", "2025-26"]
 
 forecast:
   horizon: 8                 # gameweeks to project
-  team_decay_per_day: 0.0019 # Dixon-Coles time decay (half-life ~ 1 year)
+  team_decay_per_day: 0.003  # Dixon-Coles time decay (half-life ~ 230 days)
   xg_weight: 0.6             # weight of xG vs goals in team-strength targets
   market_weight_next: 0.9    # weight on odds-implied lambdas for the next GW
   market_weight_decay: 0.6   # multiplicative decay of market weight per GW further out

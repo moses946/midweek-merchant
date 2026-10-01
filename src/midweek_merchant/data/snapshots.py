@@ -17,9 +17,20 @@ import pandas as pd
 from midweek_merchant.config import Settings
 
 SLIM_COLS = [
-    "element", "code", "status", "news", "chance_next", "chance_this", "now_cost", "selected_by_percent",
-    "transfers_in_event", "transfers_out_event", "price_change_percent", "price_change_hourly_rate",
-    "price_change_locked_until", "ep_next",
+    "element",
+    "code",
+    "status",
+    "news",
+    "chance_next",
+    "chance_this",
+    "now_cost",
+    "selected_by_percent",
+    "transfers_in_event",
+    "transfers_out_event",
+    "price_change_percent",
+    "price_change_hourly_rate",
+    "price_change_locked_until",
+    "ep_next",
 ]
 
 
