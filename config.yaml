@@ -27,9 +27,9 @@ optimizer:
   hit_cost: 4
   max_hits_per_gw: 2
   pool_size: 220
-  mip_gap: 0.003
-  time_limit: 60
-  ft_after_chip: accrue      # freeze | accrue  (behaviour of FTs after WC/FH weeks)
+  mip_gap: 0.008             # relative MIP gap (same plans as 0.003 in testing, ~4x faster)
+  time_limit: 45
+  ft_after_chip: freeze      # freeze | accrue: FTs after WC/FH weeks (freeze verified: mm diagnose ft-rule)
   chip_option_value: {wildcard: 6.0, freehit: 5.0, bboost: 5.0, "3xc": 3.0}
 
 odds:

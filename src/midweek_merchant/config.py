@@ -34,9 +34,9 @@ class OptimizerConfig(BaseModel):
     hit_cost: int = 4
     max_hits_per_gw: int = 2
     pool_size: int = 220
-    mip_gap: float = 0.003
-    time_limit: float = 60
-    ft_after_chip: str = "accrue"
+    mip_gap: float = 0.008
+    time_limit: float = 45
+    ft_after_chip: str = "freeze"
     chip_option_value: dict[str, float] = Field(
         default_factory=lambda: {"wildcard": 6.0, "freehit": 5.0, "bboost": 5.0, "3xc": 3.0}
     )
