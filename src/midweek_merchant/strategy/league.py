@@ -133,26 +133,69 @@ def plan_lineups(plan: Plan) -> dict[int, Lineup]:
     }
 
 
-def score_lineup(sim: SimResult, gw: int, lu: Lineup) -> np.ndarray:
-    """Simulated points for a lineup with automatic substitutions and vice-captain fallback."""
+OUTFIELD = ("DEF", "MID", "FWD")
+FORMATION_MIN = {"DEF": 3, "MID": 2, "FWD": 1}
+
+
+def _autosubs(sim: SimResult, gw: int, starters: list[int], bench: list[int]) -> np.ndarray:
+    """Extra points from FPL automatic substitutions, per simulation.
+
+    FPL rules: only the bench goalkeeper can replace a starting goalkeeper; outfield bench
+    players come on in bench order, each replacing a non-playing starter only if the team
+    still has at least 3 DEF, 2 MID and 1 FWD afterwards.
+    """
     col = sim.column()
     pts, played = sim.points[gw], sim.played[gw]
     S = pts.shape[0]
+    pos = sim.positions or {}
+    extra = np.zeros(S)
+    st = [e for e in starters if e in col]
+    bn = [e for e in bench if e in col]
+    if not pos:  # positions unknown: plain bench order
+        if not bn or not st:
+            return extra
+        missing = (~played[:, [col[e] for e in st]]).sum(axis=1)
+        bpl = played[:, [col[e] for e in bn]]
+        use = bpl & (np.cumsum(bpl, axis=1) <= missing[:, None])
+        return (pts[:, [col[e] for e in bn]] * use).sum(axis=1)
+    gk_s = [e for e in st if pos.get(e) == "GKP"]
+    gk_b = [e for e in bn if pos.get(e) == "GKP"]
+    if gk_s and gk_b:
+        swap = ~played[:, col[gk_s[0]]] & played[:, col[gk_b[0]]]
+        extra += np.where(swap, pts[:, col[gk_b[0]]], 0.0)
+    out_s = [e for e in st if pos.get(e) in OUTFIELD]
+    out_b = [e for e in bn if pos.get(e) in OUTFIELD]
+    if not out_s or not out_b:
+        return extra
+    s_pos = np.array([OUTFIELD.index(pos[e]) for e in out_s])
+    missing = ~played[:, [col[e] for e in out_s]]  # [S, n_starters]
+    counts = np.tile(np.bincount(s_pos, minlength=3), (S, 1))  # players per position in the XI
+    mins = np.array([FORMATION_MIN[p] for p in OUTFIELD])
+    for e in out_b:
+        b = OUTFIELD.index(pos[e])
+        came_on = played[:, col[e]]
+        # a missing starter can be replaced if same position or his position stays above its minimum
+        ok = missing & ((s_pos[None, :] == b) | (counts[:, s_pos] - 1 >= mins[s_pos][None, :]))
+        rows = np.flatnonzero(came_on & ok.any(axis=1))
+        if not len(rows):
+            continue
+        first = ok[rows].argmax(axis=1)
+        missing[rows, first] = False
+        np.subtract.at(counts, (rows, s_pos[first]), 1)
+        np.add.at(counts, (rows, np.full(len(rows), b)), 1)
+        extra[rows] += pts[rows, col[e]]
+    return extra
 
-    def take(els: list[int]) -> tuple[np.ndarray, np.ndarray]:
-        idx = [col[e] for e in els if e in col]
-        if not idx:
-            return np.zeros((S, 0)), np.zeros((S, 0), bool)
-        return pts[:, idx], played[:, idx]
 
-    sp, spl = take(lu.starters)
-    total = sp.sum(axis=1)
+def score_lineup(sim: SimResult, gw: int, lu: Lineup) -> np.ndarray:
+    """Simulated points for a lineup with FPL auto-substitutions and the vice-captain fallback."""
+    col = sim.column()
+    pts, played = sim.points[gw], sim.played[gw]
+    S = pts.shape[0]
+    idx = [col[e] for e in lu.starters if e in col]
+    total = pts[:, idx].sum(axis=1) if idx else np.zeros(S)
     if not lu.bench_boost and lu.bench:
-        bp, bpl = take(lu.bench)
-        missing = (~spl).sum(axis=1)  # starters who did not play
-        avail = np.cumsum(bpl, axis=1)  # bench players who played, in order
-        use = bpl & (avail <= missing[:, None])
-        total = total + (bp * use).sum(axis=1)
+        total = total + _autosubs(sim, gw, lu.starters, lu.bench)
     mult = 2 if lu.triple else 1
     ci, vi = col.get(lu.captain), col.get(lu.vice)
     cap_pts = pts[:, ci] if ci is not None else np.zeros(S)

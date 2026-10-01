@@ -34,6 +34,7 @@ number in the league URL (`/leagues/<ID>/standings/c`). No FPL login is needed.
 | **Best squad** | Best possible squad per GW (Free Hit view) and the best wildcard draft for the horizon |
 | **Chips** | Blank/double GW calendar and the value of each chip in each GW: quick single-week values plus exact re-solves including knock-on effects |
 | **Mini-league** | Rivals' squads, league effective ownership (shields/swords), candidate plans ranked by P(win league), captaincy and head-to-head odds |
+| **Hindcast** | Pick a played gameweek's XI blind (pre-deadline data only), then compare it with reality, FPL's own pick, form and the best XI possible in hindsight |
 | **Model health** | Backtest accuracy vs baselines, calibration, and live tracking of this season's projections |
 
 ## Automation (GitHub Actions)
@@ -116,18 +117,45 @@ app's Streamlit secrets; Streamlit exposes root-level secrets as environment var
   - ahead: cover shields;
   - close: maximise xPts.
 
-### Backtest (2025-26, 35 gameweeks, about 27k player-gameweeks)
+### Hindcast: blind XI picks scored on reality
 
-The test is rolling-origin: each gameweek is predicted using only earlier data plus the market's *opening* odds.
+`uv run mm hindcast --gw 5` (or `--season 2025-26 --gws 2-38`, or the **Hindcast** page) takes a gameweek that
+has already been played and has the model pick its best XI, captain and bench. It uses only what was known before
+that deadline:
 
-| Predictor | RMSE (all) | RMSE (played) | Avg points of weekly top-10 picks |
+- earlier results and xG;
+- the market's opening odds;
+- injury news, chance of playing and prices from the FPL snapshot taken after the previous gameweek
+  ([FPL-Elo-Insights](https://github.com/olbauday/FPL-Elo-Insights)).
+
+The real points are then revealed. FPL's own pre-deadline expected points and recent form pick under the same rules
+(£100m, max 3 per club, Free-Hit style), and every pick is scored with FPL auto-subs and the vice-captain rule.
+
+| Blind pick | 2025-26 (GW2–38): avg points/GW | Total | 2026-27 (GW2–5): avg points/GW |
 |---|---|---|---|
-| **This model** | **2.00** | **2.94** | **5.1** |
-| Recent form (last 4) | 2.35 | 3.21 | 3.2 |
-| FPL xP (archived; recording time unclear) | 2.45 | 3.94 | 2.4 |
+| **This model** | **62.7** | **2319** | **65.8** |
+| FPL's own ep | 54.9 | 2030 | 57.2 |
+| Recent form | 46.9 | 1736 | 50.5 |
+| Best XI possible in hindsight | 155.1 | 5738 | 159.5 |
+| Average manager | — | — | 62.2 |
 
-Calibration is close to the diagonal across deciles. Re-run with `uv run mm backtest`. The scheduled job refreshes
-it weekly, and the Model health page shows it.
+- The model's XI outscored FPL's own pick in 70% of 2025-26 gameweeks.
+- `tests/test_hindcast.py` proves there is no leakage. It deletes every statistic from the target gameweek onwards
+  and asserts the predictions and the picked XI are unchanged. It also checks that the test fails if a leak is
+  introduced.
+
+### Backtest: per-player accuracy (2025-26, 35 gameweeks)
+
+The test is rolling-origin with the same point-in-time inputs.
+
+| Predictor | RMSE (all) | RMSE (played) | Rank corr. (all) | Avg points of weekly top-10 |
+|---|---|---|---|---|
+| **This model** | **1.91** | **2.93** | **0.73** | **5.2** |
+| FPL ep (pre-deadline) | 2.12 | 3.29 | 0.70 | 4.6 |
+| Recent form (last 4) | 2.35 | 3.21 | 0.66 | 3.2 |
+
+Calibration is close to the diagonal across deciles. The scheduled job refreshes the backtest and hindcasts weekly
+(this season's hindcast on every run). The Model health and Hindcast pages show them.
 
 ### Verified rule details
 
@@ -160,14 +188,15 @@ minutes:
 | [vaastav/Fantasy-Premier-League](https://github.com/vaastav/Fantasy-Premier-League) | Per-match history for 2023-24 to 2025-26 (training, priors, backtest) |
 | [football-data.co.uk](https://www.football-data.co.uk) | Results, xG, opening/closing 1X2 and over/under odds (E0 + Championship) |
 | [the-odds-api](https://the-odds-api.com) (optional) | Fresh odds for upcoming fixtures |
+| [FPL-Elo-Insights](https://github.com/olbauday/FPL-Elo-Insights) | Per-gameweek FPL snapshots (news, prices, FPL ep) for leak-free hindcasts and backtests |
 
 Requests are throttled and cached. Please keep them that way.
 
 ## Limitations and roadmap
 
-- **No historical news in the backtest.** No historical availability/news data exists, so the backtest assumes
-  everyone is available. A snapshot archive (`data/raw/snapshots`) now accumulates every run to train a
-  LightGBM minutes model later.
+- **Team news in backtests and hindcasts is a few days old.** It comes from the snapshot after the previous
+  gameweek, so news that broke just before a deadline is missed. Our own snapshot archive (`data/raw/snapshots`)
+  captures the state right up to each deadline from now on, and will later train a LightGBM minutes model.
 - **Projections cover 8 gameweeks.** Chip planning for distant blank/double gameweeks relies on the calendar view
   until those weeks enter the horizon.
 - **Rival transfers are not modelled.** Rivals are assumed to keep their squads and play their best XI by our

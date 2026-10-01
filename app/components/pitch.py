@@ -20,15 +20,31 @@ def _card(p: dict[str, Any], t: dict[str, Any], badge: str = "", highlight: bool
         if badge
         else ""
     )
+    subtitle = f"£{p['price']:.1f}m" if "actual" in p else str(p["fixture"])
+    width = (74, 98) if "actual" in p else (92, 130)
+    if "actual" in p:  # hindcast card: prediction made before the deadline vs what happened
+        did_not_play = p.get("minutes", 1) == 0
+        ink = t["muted"] if did_not_play else t["ink"]
+        result = "DNP" if did_not_play else f"{p['actual']:.0f}"
+        stats = (
+            f'<div style="font-size:12px;color:{t["ink2"]};font-variant-numeric:tabular-nums">'
+            f'pred {p["xpts"]:.1f} → <b style="color:{ink}">{result}</b></div>'
+        )
+    else:
+        ink = t["ink"]
+        stats = (
+            f'<div style="font-size:12px;color:{t["ink"]};font-variant-numeric:tabular-nums">'
+            f"{p['xpts']:.1f} xPts · £{p['price']:.1f}m</div>"
+        )
     return (
         f'<div style="position:relative;background:{t["card"]};border:1px solid {t["border"]};{ring}'
-        f'border-radius:8px;padding:6px 8px;min-width:92px;max-width:120px;text-align:center">'
+        f'border-radius:8px;padding:6px 8px;min-width:{width[0]}px;max-width:{width[1]}px;text-align:center">'
         f"{badge_html}"
-        f'<div style="font-weight:600;font-size:13px;color:{t["ink"]};white-space:nowrap;overflow:hidden;'
+        f'<div style="font-weight:600;font-size:13px;color:{ink};white-space:nowrap;overflow:hidden;'
         f'text-overflow:ellipsis">{html.escape(p["name"])}</div>'
-        f'<div style="font-size:11px;color:{t["ink2"]}">{html.escape(p["team"])} · {html.escape(str(p["fixture"]))}</div>'
-        f'<div style="font-size:12px;color:{t["ink"]};font-variant-numeric:tabular-nums">'
-        f"{p['xpts']:.1f} xPts · £{p['price']:.1f}m</div></div>"
+        f'<div style="font-size:11px;color:{t["ink2"]};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+        f"{html.escape(str(p['team']))} · {html.escape(subtitle)}</div>"
+        f"{stats}</div>"
     )
 
 
@@ -51,7 +67,7 @@ def render_week(week: dict[str, Any], highlight: set[int] | None = None, title: 
             continue
         cards = "".join(_card(p, t, badge(p["element"]), p["element"] in highlight) for p in players)
         rows_html.append(
-            f'<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">{cards}</div>'
+            f'<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">{cards}</div>'
         )
     bench = "".join(_card(p, t, "", p["element"] in highlight) for p in week["bench"])
     head = (

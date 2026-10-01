@@ -182,15 +182,93 @@ def refresh(
                 log.info("league %s saved", s.league_id)
         except Exception:  # noqa: BLE001 - keep publishing the rest
             log.exception("team/league step failed")
+    from midweek_merchant.backtest.hindcast import hindcast_season
+    from midweek_merchant.data.ingest import previous_seasons
+    from midweek_merchant.data.store import read_table
+
+    # Hindcast every finished gameweek of this season (blind pick vs reality; a few seconds each)
+    try:
+        events = read_table(s, "events")
+        done = sorted(int(g) for g in events.loc[events["finished"].astype(bool), "gw"] if g >= 2)
+        if done:
+            hindcast_season(s, s.season, done)
+    except Exception:  # noqa: BLE001
+        log.exception("hindcast failed")
     bt = s.outputs_dir / "backtest_summary.json"
     if not bt.exists() or (time.time() - bt.stat().st_mtime) / 86400 > backtest_max_age_days:
+        prev = previous_seasons(s.season, 1)[0]
         try:
-            run_and_save(s, "2025-26", gws=list(range(4, 39, 2)))
+            run_and_save(s, prev, gws=list(range(4, 39)))
+            hindcast_season(s, prev, list(range(2, 39)))
         except Exception:  # noqa: BLE001
-            log.exception("backtest failed")
+            log.exception("backtest/hindcast of %s failed", prev)
     if publish_dir:
         man = publish.build_bundle(s, Path(publish_dir))
         typer.echo(f"bundle: {len(man['files'])} files -> {publish_dir}")
+
+
+def _parse_gws(spec: str) -> list[int]:
+    out: list[int] = []
+    for part in spec.split(","):
+        a, _, b = part.partition("-")
+        out += list(range(int(a), int(b or a) + 1))
+    return out
+
+
+@app.command()
+def hindcast(
+    season: str = typer.Option(None, help="Season, e.g. 2026-27 (default) or 2025-26"),
+    gw: int = typer.Option(None, help="One gameweek (default: last finished GW of the season)"),
+    gws: str = typer.Option(None, help="Range/list, e.g. 2-38 or 2,5,9"),
+) -> None:
+    """Pick a past gameweek's best XI blind (pre-deadline data only), then score it on reality."""
+    from midweek_merchant.backtest.hindcast import LABELS, hindcast_gw, hindcast_season
+    from midweek_merchant.data.store import read_table
+
+    s = get_settings()
+    season = season or s.season
+    if gws:
+        out = hindcast_season(s, season, _parse_gws(gws))
+        typer.echo(f"Hindcast {season}, {len(out['gameweeks'])} gameweeks (saved hindcast_{season}.json)")
+        for r in out["summary"]:
+            extra = ""
+            if r.get("beats_average_manager") is not None:
+                extra += f"  beats avg manager {r['beats_average_manager']:.0%}"
+            if r.get("beats_fpl_ep_pick") is not None:
+                extra += f"  beats FPL-ep pick {r['beats_fpl_ep_pick']:.0%}"
+            typer.echo(
+                f"  {r['pick']:<16} mean {r['mean_points']:6.1f}  total {r['total_points']:7.0f}{extra}"
+            )
+        return
+    if gw is None:
+        pm = read_table(s, "player_matches")
+        gw = int(pm.loc[pm["season"] == season, "gw"].max())
+    r = hindcast_gw(s, season, gw)
+    if r is None:
+        raise typer.BadParameter(f"No data for {season} GW{gw}")
+    m = r["picks"]["model"]
+    typer.echo(
+        f"{season} GW{gw}: model's pick, made with data up to the deadline {r['deadline'][:16]} "
+        f"(team news snapshot: {'yes' if r['snapshot_used'] else 'no'})"
+    )
+    for p in m["lineup"]:
+        tag = (
+            " (C)"
+            if p["element"] == m["captain"]["element"]
+            else (" (V)" if p["element"] == m["vice"]["element"] else "")
+        )
+        typer.echo(
+            f"  {p['position']}  {p['name'] + tag:<22} {p['team']:<15} £{p['price']:.1f}m  "
+            f"predicted {p['xpts']:4.1f}  actual {p['actual']:4.0f}  ({p['minutes']:.0f}')"
+        )
+    typer.echo("  bench: " + ", ".join(f"{p['name']} {p['actual']:.0f}" for p in m["bench"]))
+    typer.echo("Scores (actual points incl. captain and auto-subs):")
+    for k, v in r["scores"].items():
+        typer.echo(f"  {LABELS[k]:<16} {v:5.0f}   captain {r['picks'][k]['score']['captain']}")
+    if r["average_manager"] is not None:
+        typer.echo(
+            f"  {'Average manager':<16} {r['average_manager']:5.0f}   (highest {r['highest_manager']:.0f})"
+        )
 
 
 @diagnose_app.command("ft-rule")

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from midweek_merchant.config import Settings
-from midweek_merchant.data import current, history, odds, snapshots
+from midweek_merchant.data import current, elo_insights, history, odds, snapshots
 from midweek_merchant.data.fpl_api import FPLClient
 from midweek_merchant.data.store import read_table, write_table
 
@@ -72,6 +72,11 @@ def ingest(settings: Settings, history_refresh: bool = True, use_odds_api: bool 
         for a, b in (("hxg", "hxg_fd"), ("axg", "axg_fd")):
             tm_e0[a] = tm_e0[a].fillna(tm_e0[b])
     write_table(settings, "team_matches", tm_e0)
+
+    # ---- point-in-time player snapshots (news, prices, FPL ep) for hindcasts/backtests
+    snaps = elo_insights.load_all(settings, previous_seasons(settings.season, 1) + [settings.season])
+    if len(snaps):
+        write_table(settings, "player_snapshots", snaps)
 
     if len(fd):
         e1 = fd[fd["league"] == "E1"].rename(columns={"hxg_fd": "hxg", "axg_fd": "axg"})

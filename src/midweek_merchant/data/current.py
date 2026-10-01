@@ -120,7 +120,18 @@ def players_table(bootstrap: dict[str, Any]) -> pd.DataFrame:
 
 
 def events_table(bootstrap: dict[str, Any]) -> pd.DataFrame:
-    cols = ["id", "name", "deadline_time", "finished", "data_checked", "is_current", "is_next", "is_previous"]
+    cols = [
+        "id",
+        "name",
+        "deadline_time",
+        "finished",
+        "data_checked",
+        "is_current",
+        "is_next",
+        "is_previous",
+        "average_entry_score",
+        "highest_score",
+    ]
     df = pd.DataFrame([{c: e.get(c) for c in cols} for e in bootstrap["events"]])
     df["deadline_time"] = pd.to_datetime(df["deadline_time"], utc=True)
     return df.rename(columns={"id": "gw"})

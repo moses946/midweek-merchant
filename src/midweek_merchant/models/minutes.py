@@ -177,7 +177,8 @@ def availability(players: pd.DataFrame, fixture_rows: pd.DataFrame, next_gw: int
             vals[i] = 0.0
             continue
         if status == "a":
-            c = 1.0 if pd.isna(chance) else float(chance) / 100
+            # an "available" player with a 0% chance is a data glitch, not a flag
+            c = 1.0 if pd.isna(chance) or float(chance) == 0 else float(chance) / 100
             vals[i] = c if k == 0 else 1 - (1 - c) * 0.5**k
         elif status == "d":
             c = 0.5 if pd.isna(chance) else float(chance) / 100

@@ -136,6 +136,9 @@ def lines(
     fig = _layout(
         fig, height=height, title=dict(text=title, font=dict(color=t["ink"])), hovermode="x unified"
     )
+    if pd.api.types.is_integer_dtype(df[x]):  # gameweeks etc.: whole-number ticks only
+        span = int(df[x].max() - df[x].min())
+        fig.update_xaxes(tickmode="linear", dtick=max(1, span // 12))
     return fig
 
 

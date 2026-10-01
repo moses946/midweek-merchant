@@ -103,3 +103,58 @@ def test_best_xi_and_eo() -> None:
     r.lineups[1] = lu
     eo = league_eo([r], 1)
     assert eo[lu.captain] == 200 and all(eo[e] == 100 for e in lu.starters if e != lu.captain)
+
+
+def _fpl_sim(points: dict[int, float], played: set[int], positions: dict[int, str]) -> SimResult:
+    els = np.array(sorted(points))
+    return SimResult(
+        [1],
+        els,
+        {1: np.array([[points[e] for e in els]], dtype=np.float32)},
+        {1: np.array([[e in played for e in els]])},
+        positions,
+    )
+
+
+# XI: GK 1; DEF 2,3,4; MID 5,6,7,8; FWD 9,10,11. Bench: GK 12, then 13 (MID), 14 (DEF), 15 (FWD)
+POS = {
+    1: "GKP",
+    2: "DEF",
+    3: "DEF",
+    4: "DEF",
+    5: "MID",
+    6: "MID",
+    7: "MID",
+    8: "MID",
+    9: "FWD",
+    10: "FWD",
+    11: "FWD",
+    12: "GKP",
+    13: "MID",
+    14: "DEF",
+    15: "FWD",
+}
+XI, BENCH = list(range(1, 12)), [12, 13, 14, 15]
+
+
+def test_autosub_bench_gk_never_replaces_outfielder() -> None:
+    pts = {e: 2.0 for e in POS} | {12: 7.0, 13: 5.0, 9: 0.0}
+    played = set(POS) - {9}  # a forward did not play
+    s = score_lineup(_fpl_sim(pts, played, POS), 1, Lineup(XI, BENCH, captain=5, vice=6))
+    # XI without 9 = 10 players x 2 = 20, captain +2, first eligible outfield bench (13, MID) +5; GK 12 ignored
+    assert s[0] == 20 + 2 + 5
+
+
+def test_autosub_respects_formation_minimum() -> None:
+    pts = {e: 2.0 for e in POS} | {2: 0.0, 13: 9.0, 14: 4.0}
+    played = set(POS) - {2}  # a defender did not play and only 3 DEF start
+    s = score_lineup(_fpl_sim(pts, played, POS), 1, Lineup(XI, BENCH, captain=5, vice=6))
+    # MID 13 cannot replace him (would leave 2 DEF); DEF 14 comes on instead
+    assert s[0] == 20 + 2 + 4
+
+
+def test_autosub_goalkeeper_swap() -> None:
+    pts = {e: 2.0 for e in POS} | {1: 0.0, 12: 6.0}
+    played = set(POS) - {1}
+    s = score_lineup(_fpl_sim(pts, played, POS), 1, Lineup(XI, BENCH, captain=5, vice=6))
+    assert s[0] == 20 + 2 + 6

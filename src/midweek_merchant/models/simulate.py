@@ -29,6 +29,7 @@ class SimResult:
     elements: np.ndarray  # element ids (columns)
     points: dict[int, np.ndarray]  # gw -> [n_sims, n_elements] float32
     played: dict[int, np.ndarray]  # gw -> [n_sims, n_elements] bool (any minutes)
+    positions: dict[int, str] | None = None  # element -> GKP/DEF/MID/FWD (enables FPL auto-sub rules)
 
     def column(self) -> dict[int, int]:
         return {int(e): i for i, e in enumerate(self.elements)}
@@ -83,7 +84,8 @@ def simulate(
         hg, ag = draw // (MAX_GOALS + 1), draw % (MAX_GOALS + 1)
         for side, scored, conceded in ((home, hg, ag), (away, ag, hg)):
             _simulate_side(side, scored, conceded, params, rules, rng, coef, bi, pts[gw], played[gw], col)
-    return SimResult(gws, all_el, pts, played)
+    positions = dict(zip(fx["element"].astype(int), fx["position"], strict=False))
+    return SimResult(gws, all_el, pts, played, positions)
 
 
 def _simulate_side(

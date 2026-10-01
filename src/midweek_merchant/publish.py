@@ -31,6 +31,7 @@ PROCESSED = [
     "team_matches",
     "fd_e1",
     "market_odds",
+    "player_snapshots",
 ]
 
 

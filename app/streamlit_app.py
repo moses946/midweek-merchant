@@ -11,6 +11,7 @@ pages = [
     st.Page("views/best_squad.py", title="Best squad", icon=":material/star:"),
     st.Page("views/chips.py", title="Chips", icon=":material/bolt:"),
     st.Page("views/league.py", title="Mini-league", icon=":material/emoji_events:"),
+    st.Page("views/hindcast.py", title="Hindcast", icon=":material/history:"),
     st.Page("views/model_health.py", title="Model health", icon=":material/monitor_heart:"),
 ]
 st.navigation(pages).run()

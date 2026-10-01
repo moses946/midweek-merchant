@@ -34,10 +34,10 @@ else:
     )
     st.caption(
         "Lower RMSE/MAE is better; higher rank correlation is better. Even a perfect model has RMSE "
-        "around 2.7–2.9 for players who play, because FPL points are noisy. The archived 'FPL xP' "
-        "column appears to have been recorded after kick-off (it ranks non-playing players at zero), so "
-        "treat it as a reference rather than a fair baseline. No historical team news exists, so the "
-        "backtest assumes everyone is available; live results on non-playing players are better."
+        "around 2.7–2.9 for players who play, because FPL points are noisy. "
+        "FPL ep is FPL's own pre-deadline prediction, taken from the same news snapshot the model uses. Team "
+        "news comes from the snapshot after the previous gameweek, a few days before the deadline. See the "
+        "**Hindcast** page for whole-XI picks scored against reality."
     )
     c1, c2 = st.columns([3, 2])
     cal = pd.DataFrame(summ["calibration"])
