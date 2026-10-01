@@ -49,6 +49,7 @@ PM_COLS = [
     "points",
     "value",
     "selected",
+    "fpl_xp",
 ]
 
 # Standard team-match columns.

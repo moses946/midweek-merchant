@@ -64,81 +64,112 @@ def run_forecast(
     save: bool = True,
 ) -> Forecast:
     cfg = settings.forecast
-    horizon = horizon or cfg.horizon
-    rules = load_rules(settings)
-    players = read_table(settings, "players")
-    teams = read_table(settings, "teams")
     events = read_table(settings, "events")
     fixtures = read_table(settings, "fixtures")
-    pm = read_table(settings, "player_matches")
-    tm = read_table(settings, "team_matches")
-    e1 = read_table(settings, "fd_e1")
-    market = read_table(settings, "market_odds")
-
     next_gw = start_gw or next_gameweek(events)
     if next_gw is None:
         raise RuntimeError("No upcoming gameweek: season finished?")
+    horizon = horizon or cfg.horizon
     gws = list(range(next_gw, min(38, next_gw + horizon - 1) + 1))
     now = datetime.now(UTC)
-
-    # ---- team strength
+    upcoming = fixtures[fixtures["gw"].isin(gws) & ~fixtures["started"]].copy()
+    tm = read_table(settings, "team_matches")
+    e1 = read_table(settings, "fd_e1")
     cols = ["date", "league", "home", "away", "hg", "ag", "hxg", "axg"]
     hist = pd.concat(
         [tm.loc[tm["finished"].fillna(False).astype(bool), cols], e1.loc[e1["finished"].astype(bool), cols]],
         ignore_index=True,
     )
-    upcoming = fixtures[fixtures["gw"].isin(gws) & ~fixtures["started"]].copy()
-    pseudo = market.merge(upcoming[["home", "away"]], on=["home", "away"]) if len(market) else None
+    teams = read_table(settings, "teams")
+    overrides = minutes_overrides if minutes_overrides is not None else load_overrides().get("minutes", {})
+    fc = forecast_core(
+        settings,
+        players=read_table(settings, "players"),
+        upcoming=upcoming,
+        pm=read_table(settings, "player_matches"),
+        tm=tm,
+        team_hist=hist,
+        market=read_table(settings, "market_odds"),
+        season=settings.season,
+        next_gw=next_gw,
+        gws=gws,
+        now=now,
+        short=dict(zip(teams["team"], teams["short_name"], strict=True)),
+        rules=load_rules(settings),
+        minutes_overrides=overrides,
+    )
+    if save:
+        save_forecast(settings, fc)
+    return fc
+
+
+INFO_COLS = [
+    "element",
+    "name",
+    "full_name",
+    "position",
+    "team",
+    "team_short",
+    "now_cost",
+    "status",
+    "news",
+    "chance_next",
+    "selected_by_percent",
+    "ep_next",
+    "form",
+    "total_points",
+    "price_change_percent",
+]
+
+
+def forecast_core(
+    settings: Settings,
+    players: pd.DataFrame,
+    upcoming: pd.DataFrame,
+    pm: pd.DataFrame,
+    tm: pd.DataFrame,
+    team_hist: pd.DataFrame,
+    market: pd.DataFrame | None,
+    season: str,
+    next_gw: int,
+    gws: list[int],
+    now: datetime,
+    short: dict[str, str],
+    rules: Rules,
+    minutes_overrides: dict[int, dict] | None = None,
+) -> Forecast:
+    """Forecast from explicit inputs (used live and, with point-in-time inputs, by the backtest)."""
+    cfg = settings.forecast
+    pseudo = (
+        market.merge(upcoming[["home", "away"]], on=["home", "away"])
+        if market is not None and len(market)
+        else None
+    )
     ratings = fit_ratings(
-        hist, pd.Timestamp(now.date()), xi=cfg.team_decay_per_day, xg_weight=cfg.xg_weight, pseudo=pseudo
+        team_hist, pd.Timestamp(now.date()), xi=cfg.team_decay_per_day, xg_weight=cfg.xg_weight, pseudo=pseudo
     )
     proj = project_fixtures(
         ratings, upcoming, market, next_gw, cfg.market_weight_next, cfg.market_weight_decay
     )
     tf = team_fixture_rows(proj)
 
-    # ---- player panel & models
-    seasons = previous_seasons(settings.season, 2) + [settings.season]
-    panel = build_panel(pm, tm, seasons, settings.season, next_gw)
-    profiles = minutes_model.minutes_profiles(panel, players, settings.season)
-    rates, params = fit_rates(
-        panel, players, settings.season, cfg.player_half_life_matches, cfg.prior_matches
-    )
+    seasons = previous_seasons(season, 2) + [season]
+    panel = build_panel(pm, tm, seasons, season, next_gw)
+    profiles = minutes_model.minutes_profiles(panel, players, season)
+    rates, params = fit_rates(panel, players, season, cfg.player_half_life_matches, cfg.prior_matches)
 
     rows = players[["element", "code", "name", "position", "team", "team_short", "now_cost"]].merge(
         tf, on="team", how="inner"
     )
-    overrides = minutes_overrides if minutes_overrides is not None else load_overrides().get("minutes", {})
     rows = minutes_model.fixture_minutes(
-        profiles.drop(columns=["code"]), players, rows, next_gw, now, overrides
+        profiles.drop(columns=["code"]), players, rows, next_gw, now, minutes_overrides or {}
     )
     rows = rows.merge(rates.drop(columns=["code"]), on="element", how="left")
     fx_x = fixture_xpts(rows, params, rules)
-
-    short = dict(zip(teams["team"], teams["short_name"], strict=True))
     gw_x = gameweek_xpts(fx_x, players["element"], gws, short)
-    info = players[
-        [
-            "element",
-            "name",
-            "full_name",
-            "position",
-            "team",
-            "team_short",
-            "now_cost",
-            "status",
-            "news",
-            "chance_next",
-            "selected_by_percent",
-            "ep_next",
-            "form",
-            "total_points",
-            "price_change_percent",
-        ]
-    ]
+    info = players[[c for c in INFO_COLS if c in players.columns]]
     gw_x = info.merge(gw_x, on="element", how="right")
-
-    fc = Forecast(
+    return Forecast(
         next_gw=next_gw,
         gws=gws,
         projections=gw_x,
@@ -149,13 +180,15 @@ def run_forecast(
         players=players,
         generated_at=now.isoformat(timespec="seconds"),
     )
-    if save:
-        save_forecast(settings, fc)
-    return fc
 
 
 def save_forecast(settings: Settings, fc: Forecast) -> None:
     write_output(settings, "projections.parquet", fc.projections)
+    # keep the latest pre-deadline projection of each gameweek for live accuracy tracking
+    hist_dir = settings.outputs_dir / "history"
+    hist_dir.mkdir(parents=True, exist_ok=True)
+    first = fc.projections[fc.projections["gw"] == fc.next_gw][["element", "gw", "xpts", "xmins", "p_start"]]
+    first.to_parquet(hist_dir / f"projections_gw{fc.next_gw:02d}.parquet", index=False)
     fx_cols = [
         "gw",
         "fixture",

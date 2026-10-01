@@ -30,6 +30,7 @@ RENAME = {
     "defensive_contribution": "dc",
     "clearances_blocks_interceptions": "cbi",
     "total_points": "points",
+    "xP": "fpl_xp",
 }
 
 
