@@ -58,9 +58,14 @@ class FPLClient:
         ``max_age`` (seconds) allows serving a cached copy; ``None`` disables cache reads.
         """
         cache_file = self.cache_dir / f"{cache_key}.json" if (self.cache_dir and cache_key) else None
-        if cache_file and max_age is not None and cache_file.exists():
-            if time.time() - cache_file.stat().st_mtime < max_age:
-                return json.loads(cache_file.read_text())
+        fresh = (
+            cache_file is not None
+            and max_age is not None
+            and cache_file.exists()
+            and time.time() - cache_file.stat().st_mtime < max_age
+        )
+        if fresh:
+            return json.loads(cache_file.read_text())
 
         delay = 2.0
         for attempt in range(1, self.max_retries + 1):
