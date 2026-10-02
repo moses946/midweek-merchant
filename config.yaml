@@ -1,8 +1,8 @@
 # Midweek Merchant configuration. Environment variables override:
 #   FPL_TEAM_ID, FPL_LEAGUE_ID, ODDS_API_KEY, MM_DATA_DIR
 season: "2026-27"
-team_id: null        # your FPL entry id (number in the URL of your points page)
-league_id: null      # your classic mini-league id
+team_id: 3649661     # in6months (number in the URL of your points page)
+league_id: 1122026   # Mabingwa wa Signvrse (classic mini-league id)
 
 history_seasons: ["2023-24", "2024-25", "2025-26"]
 
