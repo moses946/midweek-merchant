@@ -18,6 +18,8 @@ uv run mm forecast                       # xPts for the next 8 GWs
 uv run mm best-squad                     # best XI per GW + a wildcard draft
 uv run mm plan --team-id 1234567         # your transfer/captain plan
 uv run mm league --league-id 98765 --team-id 1234567
+uv run mm ceiling --team-id 1234567      # plans ranked by the chance of a 100+ week in the next 4 GWs
+uv run mm hindcast --team-id 1234567 --gw 5   # your own squad at a past deadline, picked blind
 uv run streamlit run app/streamlit_app.py
 ```
 
@@ -32,9 +34,9 @@ number in the league URL (`/leagues/<ID>/standings/c`). No FPL login is needed.
 | **My team** | Load your team by ID, add transfers already made this week, set horizon/hits/locks/bans/availability overrides, get the plan with a pitch view and alternatives |
 | **Projections** | Filterable xPts table per GW, fixture ticker (expected goals / clean-sheet chance), official price-change watch |
 | **Best squad** | Best possible squad per GW (Free Hit view) and the best wildcard draft for the horizon |
-| **Chips** | Blank/double GW calendar and the value of each chip in each GW: quick single-week values plus exact re-solves including knock-on effects |
+| **Chips** | Blank/double GW calendar and the value of each chip in each GW: quick single-week values plus exact re-solves including knock-on effects. **Chase a big week** ranks chip plans by the chance of a 100+ (or any target) gameweek |
 | **Mini-league** | Rivals' squads, league effective ownership (shields/swords), candidate plans ranked by P(win league), captaincy and head-to-head odds |
-| **Hindcast** | Pick a played gameweek's XI blind (pre-deadline data only), then compare it with reality, FPL's own pick, form and the best XI possible in hindsight |
+| **Hindcast** | Pick a played gameweek's XI blind (pre-deadline data only), then compare it with reality, FPL's own pick, form and the best XI possible in hindsight. **Your team, picked blind** replays your own squad, bank and free transfers at that deadline |
 | **Model health** | Backtest accuracy vs baselines, calibration, and live tracking of this season's projections |
 
 ## Automation (GitHub Actions)
@@ -143,6 +145,35 @@ The real points are then revealed. FPL's own pre-deadline expected points and re
 - `tests/test_hindcast.py` proves there is no leakage. It deletes every statistic from the target gameweek onwards
   and asserts the predictions and the picked XI are unchanged. It also checks that the test fails if a leak is
   introduced.
+
+With `--team-id`, the hindcast starts from **your** squad, bank and free transfers as they were at that deadline. It
+shows a ladder of options, each picked blind and scored on the real points:
+
+- what you fielded (re-scored, so it must match FPL's total);
+- the model's XI from the same 15;
+- the model's best use of your free transfer, with and without hits;
+- a Free Hit with your budget;
+- hindsight references.
+
+### Chasing a 100+ gameweek
+
+`uv run mm ceiling --target 100 --weeks 4` (or **Chips → Chase a big week**) answers a different question from the
+planner. Instead of "most expected points", it asks "best chance of at least one gameweek ≥ target in the next N".
+
+- **Candidate plans.** Every chip schedule the rules allow over those weeks: no chip, Wildcard, Bench Boost, Triple
+  Captain, Wildcard followed by Bench Boost and/or Triple Captain, and Free Hit. Each is solved for expected points over
+  8 gameweeks, so later weeks are not sacrificed for nothing. The best two chip plans are re-solved with a **stack** of
+  the top three attackers from the team expected to score most in the chip week; same-team attackers boom together.
+- **Scoring on tails.** Every plan is scored on 5,000 correlated simulations. In each week the captain (or Triple
+  Captain) is re-chosen to maximise P(week ≥ target), not the mean.
+- **Output.** P(any week ≥ target), P per week, the expected best week, a 1-in-100 week, and expected points given up
+  over 8 gameweeks versus the max-expected-points plan (counting the value of chips kept).
+- **Tail calibration** (`uv run mm diagnose tails`). The simulator is checked on blind hindcast XIs over 41
+  gameweeks of 2025-26 and 2026-27:
+  - the simulated mean was 62.9 against 63.0 actual;
+  - the raw spread was slightly too wide, so one spread factor (k = 0.85) is fitted by CRPS and applied to tail
+    probabilities;
+  - with it, those weeks expected 5.9 scores of 80+ (6 happened) and 1.2 of 100+ (0 happened).
 
 ### Backtest: per-player accuracy (2025-26, 35 gameweeks)
 

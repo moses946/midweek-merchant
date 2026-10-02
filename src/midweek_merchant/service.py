@@ -6,6 +6,7 @@ import logging
 from dataclasses import replace
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from midweek_merchant.config import Settings
@@ -200,7 +201,21 @@ def league_report(
     for r in rivals:
         needed |= {p.element for p in r.state.squad}
     sim = simulate(fx[fx["gw"].isin(gws)], rate_params(settings), rules, n_sims=n_sims, elements=needed)
-    res = lg.analyse(me, rivals, plans, sim, proj, gws, weeks_left_after=38 - gws[-1], plan_labels=labels)
+    values, half = dict(settings.optimizer.chip_option_value), rules.chip_half(gws[0])
+    res = lg.analyse(
+        me,
+        rivals,
+        plans,
+        sim,
+        proj,
+        gws,
+        weeks_left_after=38 - gws[-1],
+        plan_labels=labels,
+        plan_bonus=[
+            lg.held_chip_value(me.state, half, values, {w.chip for w in p.weeks if w.chip}) for p in plans
+        ],
+        rival_bonus={r.entry: lg.held_chip_value(r.state, half, values) for r in rivals},
+    )
     return {
         "league": {"id": league_id, "name": meta.get("name", "")},
         "gws": [int(g) for g in gws],
@@ -223,6 +238,68 @@ def league_report(
             }
             for r in rivals
         ],
+    }
+
+
+def ceiling_report(
+    settings: Settings,
+    state: TeamState,
+    target: float = 100,
+    weeks: int = 4,
+    horizon: int = 8,
+    n_sims: int = 5000,
+    max_workers: int = 4,
+    n_plans: int = 10,
+) -> dict[str, Any]:
+    """Plans ranked by P(at least one week >= target) in the next ``weeks`` gameweeks."""
+    import json
+
+    from midweek_merchant.models.simulate import simulate
+    from midweek_merchant.strategy import ceiling as cl
+
+    rules = load_rules(settings)
+    proj = load_projections(settings)
+    fx = pd.read_parquet(settings.outputs_dir / "fixture_xpts.parquet")
+    params = rate_params(settings)
+    opts = PlanOptions.from_config(settings.optimizer, horizon=horizon, last_gw_chip=last_chip(state))
+
+    def sim_fn(gws: list[int], n: int):  # noqa: ANN202
+        return simulate(fx[fx["gw"].isin(gws)], params, rules, n_sims=n, seed=23)
+
+    calib_path = settings.outputs_dir / "tail_calibration.json"
+    calib = json.loads(calib_path.read_text()) if calib_path.exists() else None
+    scale = float(calib["scale"]) if calib else 1.0
+    res = cl.analyse(proj, state, rules, opts, sim_fn, target, weeks, n_sims, max_workers, scale=scale)
+    keep = list(dict.fromkeys([*res.table["plan"].head(n_plans).astype(int), res.reference]))
+    plans = {}
+    for k in keep:
+        e = res.evaluations[k]
+        weeks_ = [
+            replace(w, captain=e.lineups[w.gw].captain, vice=e.lineups[w.gw].vice) if w.gw in e.lineups else w
+            for w in e.plan.weeks
+        ]
+        table = plan_table(replace(e.plan, weeks=weeks_), proj)
+        for wk in table:
+            if wk["gw"] in e.scores:
+                s = e.scores[wk["gw"]]
+                wk["sim"] = {
+                    "mean": float(s.mean()),
+                    "p_target": float((s >= target).mean()),
+                    "p90": float(np.percentile(s, 90)),
+                    "p99": float(np.percentile(s, 99)),
+                }
+        plans[str(k)] = {"label": e.schedule.label, "total_xpts": e.plan.total_xpts, "weeks": table}
+    return {
+        "target": target,
+        "target_gws": [int(g) for g in res.target_gws],
+        "horizon_gws": [int(g) for g in res.horizon_gws],
+        "n_sims": n_sims,
+        "table": res.table.to_dict("records"),
+        "best": res.best,
+        "reference": res.reference,
+        "plans": plans,
+        "scale": scale,
+        "calibration": {k: v for k, v in calib.items() if k != "crps_by_scale"} if calib else None,
     }
 
 

@@ -54,7 +54,7 @@ jobs:
             mkdir -p data/raw data/outputs
             [ -d /tmp/published/raw/snapshots ] && cp -r /tmp/published/raw/snapshots data/raw/
             [ -d /tmp/published/outputs/history ] && cp -r /tmp/published/outputs/history data/outputs/
-            cp /tmp/published/outputs/backtest_* /tmp/published/outputs/hindcast_* data/outputs/ 2>/dev/null || true
+            cp /tmp/published/outputs/backtest_* /tmp/published/outputs/hindcast_* /tmp/published/outputs/tail_calibration* data/outputs/ 2>/dev/null || true
           fi
 
       - name: Refresh pipeline

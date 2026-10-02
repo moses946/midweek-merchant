@@ -147,6 +147,7 @@ def refresh(
     publish_dir: str = typer.Option(None, help="Write the publishable bundle here (for the data branch)"),
     backtest_max_age_days: float = typer.Option(7.0, help="Re-run the backtest when older than this"),
     chips: bool = typer.Option(True, help="Also evaluate chip timing for the configured team"),
+    ceiling: bool = typer.Option(True, help="Also rank plans by the chance of a 100+ week"),
 ) -> None:
     """Scheduled pipeline: ingest -> forecast -> best squads -> team plan -> league -> publish."""
     import time
@@ -183,6 +184,7 @@ def refresh(
         except Exception:  # noqa: BLE001 - keep publishing the rest
             log.exception("team/league step failed")
     from midweek_merchant.backtest.hindcast import hindcast_season
+    from midweek_merchant.backtest.tails import fit_scale, tail_calibration
     from midweek_merchant.data.ingest import previous_seasons
     from midweek_merchant.data.store import read_table
 
@@ -192,6 +194,7 @@ def refresh(
         done = sorted(int(g) for g in events.loc[events["finished"].astype(bool), "gw"] if g >= 2)
         if done:
             hindcast_season(s, s.season, done)
+            tail_calibration(s, s.season)
     except Exception:  # noqa: BLE001
         log.exception("hindcast failed")
     bt = s.outputs_dir / "backtest_summary.json"
@@ -200,8 +203,17 @@ def refresh(
         try:
             run_and_save(s, prev, gws=list(range(4, 39)))
             hindcast_season(s, prev, list(range(2, 39)))
+            tail_calibration(s, prev)
         except Exception:  # noqa: BLE001
             log.exception("backtest/hindcast of %s failed", prev)
+    fit_scale(s, (*previous_seasons(s.season, 1), s.season))
+    if ceiling and s.team_id:  # after the tail calibration it relies on
+        try:
+            state = service.team_state(s, s.team_id)
+            write_output(s, f"ceiling_{s.team_id}.json", service.ceiling_report(s, state))
+            log.info("ceiling plans for %s saved", s.team_id)
+        except Exception:  # noqa: BLE001
+            log.exception("ceiling step failed")
     if publish_dir:
         man = publish.build_bundle(s, Path(publish_dir))
         typer.echo(f"bundle: {len(man['files'])} files -> {publish_dir}")
@@ -220,6 +232,7 @@ def hindcast(
     season: str = typer.Option(None, help="Season, e.g. 2026-27 (default) or 2025-26"),
     gw: int = typer.Option(None, help="One gameweek (default: last finished GW of the season)"),
     gws: str = typer.Option(None, help="Range/list, e.g. 2-38 or 2,5,9"),
+    team_id: int = typer.Option(None, help="Use YOUR squad, bank and FTs as they were at that deadline"),
 ) -> None:
     """Pick a past gameweek's best XI blind (pre-deadline data only), then score it on reality."""
     from midweek_merchant.backtest.hindcast import LABELS, hindcast_gw, hindcast_season
@@ -227,6 +240,35 @@ def hindcast(
 
     s = get_settings()
     season = season or s.season
+    if team_id:
+        from midweek_merchant.backtest.hindcast import hindcast_team
+
+        if gw is None:
+            pm = read_table(s, "player_matches")
+            gw = int(pm.loc[pm["season"] == season, "gw"].max())
+        r = hindcast_team(s, team_id, season, gw)
+        st = r["state"]
+        typer.echo(
+            f"{r['team']} at the GW{gw} deadline: bank £{st['bank']:.1f}m, {st['free_transfers']} FT, "
+            f"squad value £{st['squad_value']:.1f}m. FPL scored you {r['fpl_points']}."
+        )
+        typer.echo(
+            "Picked with pre-deadline predictions only, scored on real GW points (auto-subs, captain):"
+        )
+        for row in r["rows"]:
+            typer.echo(
+                f"  {row['label']:<44} {row['moves'][:46]:<46} (C) {row['captain']:<14} "
+                f"predicted {row['predicted']:5.1f}  actual {row['actual']:5.0f}"
+            )
+        best = r["weeks"]["ft"]
+        typer.echo("Model's pick with your free transfer:")
+        for p in best["lineup"]:
+            tag = " (C)" if p["element"] == best["captain"]["element"] else ""
+            typer.echo(
+                f"  {p['position']}  {p['name'] + tag:<20} predicted {p['xpts']:4.1f}  actual {p['actual']:4.0f}"
+            )
+        typer.echo("  bench: " + ", ".join(f"{p['name']} {p['actual']:.0f}" for p in best["bench"]))
+        return
     if gws:
         out = hindcast_season(s, season, _parse_gws(gws))
         typer.echo(f"Hindcast {season}, {len(out['gameweeks'])} gameweeks (saved hindcast_{season}.json)")
@@ -269,6 +311,103 @@ def hindcast(
         typer.echo(
             f"  {'Average manager':<16} {r['average_manager']:5.0f}   (highest {r['highest_manager']:.0f})"
         )
+
+
+@app.command()
+def ceiling(
+    team_id: int = typer.Option(None, help="FPL entry id (defaults to config/env)"),
+    target: float = typer.Option(100, help="Points target for one gameweek"),
+    weeks: int = typer.Option(4, help="Chase the target within the next N gameweeks"),
+    horizon: int = typer.Option(8, help="Plan horizon (later weeks still count for expected points)"),
+    sims: int = typer.Option(5000, help="Monte Carlo simulations"),
+    workers: int = typer.Option(4, help="Parallel solves"),
+) -> None:
+    """Plans ranked by the chance of at least one gameweek above the target."""
+    from midweek_merchant import service
+    from midweek_merchant.data.store import write_output
+
+    s = get_settings()
+    tid = team_id or s.team_id
+    if not tid:
+        raise typer.BadParameter("Give --team-id or set team_id in config.yaml / FPL_TEAM_ID")
+    state = service.team_state(s, tid)
+    rep = service.ceiling_report(s, state, target, weeks, horizon, sims, workers)
+    write_output(s, f"ceiling_{tid}.json", rep)
+    gws = rep["target_gws"]
+    typer.echo(
+        f"{state.name}: P(at least one week >= {target:g}) in GW{gws[0]}–{gws[-1]}, "
+        f"{sims} simulations; captains re-chosen for the target; tail-calibrated with spread factor "
+        f"k={rep['scale']:g} (raw = uncalibrated). Saved ceiling_{tid}.json"
+    )
+    head = f"  {'plan':<62} {'P(any)':>7} {'raw':>6} " + " ".join(f"{'GW' + str(g):>6}" for g in gws)
+    typer.echo(
+        head + f" {'E[best]':>8} {'p99':>5} {'E[GW' + str(gws[0]) + '–' + str(gws[-1]) + ']':>10} {'cost':>6}"
+    )
+    for r in rep["table"]:
+        typer.echo(
+            f"  {r['label'][:62]:<62} {r['p_any']:7.1%} {r['p_any_raw']:6.1%} "
+            + " ".join(f"{r[f'p_gw{g}']:6.1%}" for g in gws)
+            + f" {r['e_best_week']:8.1f} {r['p99_best_week']:5.0f} {r['e_total']:10.1f} {r['cost_vs_best']:6.1f}"
+        )
+    typer.echo(
+        f"  cost = expected points given up over GW{rep['horizon_gws'][0]}–{rep['horizon_gws'][-1]} "
+        "(incl. value of chips kept) vs the best expected-points plan tested"
+    )
+    best = rep["plans"][str(rep["best"])]
+    typer.echo(f"\nBest chance: {best['label']}")
+    for w in best["weeks"]:
+        if "sim" not in w:
+            continue
+        moves = ", ".join(
+            f"{o['name']} → {i['name']}" for o, i in zip(w["transfers_out"], w["transfers_in"], strict=False)
+        )
+        if w["chip"] == "wildcard":
+            moves = "Wildcard: " + ", ".join(i["name"] for i in w["transfers_in"])
+        typer.echo(
+            f"  GW{w['gw']} {('[' + w['chip'] + ']') if w['chip'] else '':<11} "
+            f"C {w['captain']['name']:<14} mean {w['sim']['mean']:5.1f}  P(>={target:g}) {w['sim']['p_target']:5.1%}  "
+            f"p99 {w['sim']['p99']:4.0f}  hits {w['hits']}  {moves or 'no transfers'}"
+        )
+        typer.echo(
+            "      XI: "
+            + ", ".join(p["name"] for p in w["lineup"])
+            + " | bench: "
+            + ", ".join(p["name"] for p in w["bench"])
+        )
+
+
+@diagnose_app.command("tails")
+def tails(
+    seasons: str = typer.Option("2025-26,2026-27", help="Seasons with saved hindcasts"),
+    every: int = typer.Option(1, help="Use every Nth hindcast gameweek"),
+    sims: int = typer.Option(4000),
+    refit_only: bool = typer.Option(False, help="Only refit the spread factor from saved calibrations"),
+) -> None:
+    """Check the simulator's score distribution on blind hindcast XIs and fit its spread factor."""
+    from midweek_merchant.backtest.tails import fit_scale, tail_calibration
+
+    s = get_settings()
+    names = tuple(x.strip() for x in seasons.split(","))
+
+    def show(tag: str, r: dict) -> None:
+        typer.echo(
+            f"[{tag}] {r['gameweeks']} GWs | actual mean {r['actual_mean']:.1f} vs simulated "
+            f"{r['sim_mean']:.1f} | simulated SD {r['sim_sd']:.1f} vs realised {r['realised_sd']:.1f}"
+        )
+        typer.echo(
+            f"   80+: expected {r['n80_expected']:.1f} weeks, observed {r['n80_observed']} | "
+            f"100+: expected {r['n100_expected']:.1f}, observed {r['n100_observed']} | PIT {r['pit_hist']}"
+        )
+
+    if not refit_only:
+        for season in names:
+            for r in tail_calibration(s, season, every, sims, picks=("model", "fpl_ep"))["summary"]:
+                show(f"{season} {r['pick']}", r)
+    fit = fit_scale(s, names)
+    typer.echo(f"Fitted spread factor k = {fit['scale']} over {fit['gameweeks']} model-pick gameweeks (CRPS)")
+    if fit["gameweeks"]:
+        show("pooled, raw", fit["raw"])
+        show(f"pooled, k={fit['scale']}", fit["fitted"])
 
 
 @diagnose_app.command("ft-rule")

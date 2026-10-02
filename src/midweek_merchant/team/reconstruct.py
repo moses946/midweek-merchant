@@ -189,6 +189,70 @@ def reconstruct(
     )
 
 
+def reconstruct_as_of(
+    client: FPLClient,
+    entry_id: int,
+    players: pd.DataFrame,
+    rules: Rules,
+    gw: int,
+    prices: dict[int, int],
+    ft_after_chip: str = "freeze",
+) -> TeamState:
+    """The manager's state at the GW ``gw`` deadline: squad, bank, FTs and chips before any
+    GW ``gw`` transfers, with selling prices at that deadline's ``prices`` (element -> tenths)."""
+    entry = client.entry(entry_id)
+    hist = client.entry_history(entry_id)
+    transfers = [t for t in client.entry_transfers(entry_id) if t["event"] < gw]
+    rows = [r for r in hist.get("current", []) if r["event"] < gw]
+    chips = [c for c in hist.get("chips", []) if c["event"] < gw]
+    if not rows:
+        raise ValueError(f"Entry {entry_id} has no history before GW{gw}")
+    start_event = entry.get("started_event") or min(r["event"] for r in rows)
+    fh_gws = {c["event"] for c in chips if c["name"] == "freehit"}
+    src = gw - 2 if (gw - 1) in fh_gws else gw - 1
+    picks = client.entry_picks(entry_id, src)
+    info = players.set_index("element")
+    squad = []
+    for el in (p["element"] for p in picks["picks"]):
+        p = info.loc[el]
+        buys = [t for t in transfers if t["element_in"] == el and t["event"] not in fh_gws]
+        start_price = int(p["now_cost"] - p["cost_change_start"])
+        if buys:
+            purchase = int(max(buys, key=lambda t: t["time"])["element_in_cost"])
+        elif start_event <= 1:
+            purchase = start_price
+        else:
+            purchase = _price_at_gw(client, el, start_event, start_price)
+        now = int(prices.get(int(el), p["now_cost"]))
+        squad.append(
+            SquadPlayer(
+                int(el),
+                p["name"],
+                p["position"],
+                p["team"],
+                purchase,
+                now,
+                Rules.selling_price(purchase, now),
+            )
+        )
+    last = max(rows, key=lambda r: r["event"])
+    ft, report = replay_free_transfers(rows, chips, start_event, rules, ft_after_chip)
+    return TeamState(
+        entry_id=entry_id,
+        name=entry.get("name", ""),
+        next_gw=gw,
+        squad=squad,
+        bank=int(last.get("bank", 0)),
+        free_transfers=ft,
+        chips_available=chips_available(rules, chips, gw),
+        chips_used=[{"name": c["name"], "event": c["event"]} for c in chips],
+        total_points=int(last.get("total_points", 0) or 0),
+        last_gw_points=last.get("points"),
+        ft_check=report,
+        notes=[f"State as of the GW{gw} deadline (squad from GW{src} picks)"],
+    )
+
+
 def _price_at_gw(client: FPLClient, element: int, gw: int, fallback: int) -> int:
     try:
         hist = client.element_summary(element)["history"]

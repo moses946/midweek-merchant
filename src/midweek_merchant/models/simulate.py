@@ -54,16 +54,10 @@ def simulate(
     rng = np.random.default_rng(seed)
     fx = fx.copy()
     if elements is not None:
-        # keep whole teams of the relevant fixtures so goal allocation stays consistent
-        teams_needed = set(
-            zip(
-                fx.loc[fx["element"].isin(elements), "team"],
-                fx.loc[fx["element"].isin(elements), "fixture"],
-                strict=True,
-            )
-        )
-        mask = [(t, f) in teams_needed for t, f in zip(fx["team"], fx["fixture"], strict=True)]
-        fx = fx[np.array(mask, dtype=bool)]
+        # keep both sides of every relevant fixture: the scoreline needs both teams' lambdas,
+        # and whole teams keep goal allocation consistent
+        fixtures_needed = set(fx.loc[fx["element"].isin(elements), "fixture"])
+        fx = fx[fx["fixture"].isin(fixtures_needed)]
     gws = sorted(int(g) for g in fx["gw"].unique())
     all_el = np.array(sorted(fx["element"].unique()))
     col = {e: i for i, e in enumerate(all_el)}
@@ -86,6 +80,14 @@ def simulate(
             _simulate_side(side, scored, conceded, params, rules, rng, coef, bi, pts[gw], played[gw], col)
     positions = dict(zip(fx["element"].astype(int), fx["position"], strict=False))
     return SimResult(gws, all_el, pts, played, positions)
+
+
+def rescale(samples: np.ndarray, k: float) -> np.ndarray:
+    """Shrink (k < 1) or widen (k > 1) a sample distribution around its mean (tail calibration)."""
+    if k == 1:
+        return samples
+    mu = samples.mean()
+    return mu + k * (samples - mu)
 
 
 def _simulate_side(

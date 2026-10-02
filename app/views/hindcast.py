@@ -115,3 +115,51 @@ with st.expander("FPL ep and form picks"):
         if key in r["picks"]:
             with col:
                 render_week(r["picks"][key], title=f"{LABEL[key]} pick")
+
+# ------------------------------------------------------------------ your own team, blind
+st.subheader("Your team, picked blind")
+team_id = (st.session_state.get("team_state") or {}).get("entry_id") or common.SETTINGS.team_id
+if season != common.SETTINGS.season or not team_id:
+    st.caption("Load your team on **My team** (or set `team_id`) to replay your own squad for this season.")
+    st.stop()
+st.caption(
+    "Same test, starting from the squad, bank and free transfers you actually had at that deadline. Every "
+    "option is picked from the model's pre-deadline predictions only, then scored on the real points "
+    "(captain, vice and automatic substitutions). The hindsight rows are for reference."
+)
+gw_t = st.selectbox(
+    "Gameweek", [r["gw"] for r in gws][::-1], format_func=lambda g: f"GW{g}", key="team_hindcast_gw"
+)
+yt = common.output(f"hindcast_team_{team_id}_gw{gw_t}.json")
+if yt is None:
+    if st.button(f"Replay my GW{gw_t} (about 1 minute)", type="primary"):
+        from midweek_merchant.backtest.hindcast import hindcast_team
+
+        with st.spinner("Rebuilding your squad at the deadline and picking blind…"):
+            hindcast_team(common.SETTINGS, int(team_id), season, int(gw_t))
+        common.clear_caches()
+        st.rerun()
+    st.stop()
+st_ = yt["state"]
+st.write(
+    f"**{yt['team']}** at the GW{gw_t} deadline: bank £{st_['bank']:.1f}m, {st_['free_transfers']} free "
+    f"transfer(s), squad value £{st_['squad_value']:.1f}m. FPL scored you **{yt['fpl_points']}**."
+)
+ladder = pd.DataFrame(yt["rows"])
+st.dataframe(
+    ladder[["label", "moves", "captain", "predicted", "actual"]],
+    hide_index=True,
+    width="stretch",
+    column_config={
+        "label": st.column_config.TextColumn("Option", width="medium"),
+        "moves": st.column_config.TextColumn("Transfers", width="medium"),
+        "captain": "Captain",
+        "predicted": st.column_config.NumberColumn("Predicted", format="%.1f"),
+        "actual": st.column_config.NumberColumn("Actual", format="%.0f"),
+    },
+)
+left, right = st.columns(2)
+with left:
+    render_week(yt["weeks"]["ft"], title="Model's pick with your free transfer")
+with right:
+    render_week(yt["weeks"]["actual"], title="What you fielded")

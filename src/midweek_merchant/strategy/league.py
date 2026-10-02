@@ -205,6 +205,18 @@ def score_lineup(sim: SimResult, gw: int, lu: Lineup) -> np.ndarray:
     return total - 4 * lu.hits
 
 
+def held_chip_value(
+    state: TeamState | None, half: int, values: dict[str, float], used: set[str] | None = None
+) -> float:
+    """Option value of the chips of one chip window (half) still held, minus any ``used``."""
+    if state is None:
+        return 0.0
+    used = used or set()
+    return float(
+        sum(values.get(c, 0.0) for c, hs in state.chips_available.items() if half in hs and c not in used)
+    )
+
+
 def league_eo(rivals: list[Manager], gw: int) -> dict[int, float]:
     """Effective ownership (%) among rivals for one gameweek: starters count 1, captain +1 (TC +2)."""
     eo: dict[int, float] = {}
@@ -253,7 +265,15 @@ def analyse(
     weeks_left_after: int,
     plan_labels: list[str] | None = None,
     seed: int = 11,
+    plan_bonus: list[float] | None = None,
+    rival_bonus: dict[int, float] | None = None,
 ) -> LeagueAnalysis:
+    """Rank my plans by P(win league) against rivals' predicted lineups on shared simulations.
+
+    ``plan_bonus`` (per plan) and ``rival_bonus`` (per rival entry id) add the expected value
+    of chips still held after the horizon to each final score, so a plan that spends chips
+    now is compared fairly with rivals (and plans) that keep theirs.
+    """
     rng = np.random.default_rng(seed)
     info = proj.drop_duplicates("element").set_index("element")
     first = gws[0]
@@ -287,6 +307,9 @@ def analyse(
     )
     idio = sd_diff / np.sqrt(2) * np.sqrt(max(weeks_left_after, 0))
     ext = rng.normal(0, idio, (S, 1 + len(rivals)))  # common random numbers across plans
+    plan_bonus = plan_bonus or [0.0] * len(my_plans)
+    if rival_bonus:
+        ext[:, 1:] += np.array([rival_bonus.get(r.entry, 0.0) for r in rivals], dtype=float)[None, :]
 
     plan_rows = []
     for k, plan in enumerate(my_plans):
@@ -295,6 +318,7 @@ def analyse(
         allsc = np.column_stack([mine, riv_h])
         rank = 1 + (allsc[:, 1:] > allsc[:, :1]).sum(axis=1)
         final = allsc + ext
+        final[:, 0] += plan_bonus[k]
         w0 = plan.weeks[0]
         plan_rows.append(
             {
@@ -324,6 +348,7 @@ def analyse(
     scores = np.column_stack([mine, riv_h])
     ranks = 1 + (scores[:, :, None] < scores[:, None, :]).sum(axis=2)
     final = scores + ext
+    final[:, 0] += plan_bonus[best]
     franks = 1 + (final[:, :, None] < final[:, None, :]).sum(axis=2)
     standings = pd.DataFrame(
         {
