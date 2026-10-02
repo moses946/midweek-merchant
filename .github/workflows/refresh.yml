@@ -1,0 +1,70 @@
+name: refresh
+
+# Refreshes data, forecasts and plans, then force-pushes a single-commit `data` branch
+# that the dashboard reads. Configure in Settings -> Secrets and variables -> Actions:
+#   secret   ODDS_API_KEY   (optional, the-odds-api.com free tier)
+#   variable FPL_TEAM_ID    (optional, your entry id: precomputes your plan + chips)
+#   variable FPL_LEAGUE_ID  (optional, your classic league id: precomputes league analysis)
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+      FPL_TEAM_ID: ${{ vars.FPL_TEAM_ID }}
+      FPL_LEAGUE_ID: ${{ vars.FPL_LEAGUE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install
+        run: uv sync --frozen
+
+      - name: Cache downloaded history and finished-gameweek data
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/raw/vaastav
+            data/raw/football_data
+            data/raw/fpl/live
+            data/raw/odds_api
+          key: raw-${{ github.run_id }}
+          restore-keys: raw-
+
+      - name: Restore previously published archive (snapshots, per-GW projections, backtest, hindcasts)
+        run: |
+          if git fetch --depth=1 origin data 2>/dev/null; then
+            mkdir -p /tmp/published && git --work-tree=/tmp/published checkout FETCH_HEAD -- .
+            git reset -q
+            mkdir -p data/raw data/outputs
+            [ -d /tmp/published/raw/snapshots ] && cp -r /tmp/published/raw/snapshots data/raw/
+            [ -d /tmp/published/outputs/history ] && cp -r /tmp/published/outputs/history data/outputs/
+            cp /tmp/published/outputs/backtest_* /tmp/published/outputs/hindcast_* /tmp/published/outputs/tail_calibration* data/outputs/ 2>/dev/null || true
+          fi
+
+      - name: Refresh pipeline
+        run: uv run mm refresh --publish-dir "$RUNNER_TEMP/bundle"
+
+      - name: Publish data branch
+        run: |
+          cd "$RUNNER_TEMP/bundle"
+          git init -q -b data
+          git add -A
+          git -c user.name="midweek-merchant-bot" -c user.email="actions@users.noreply.github.com" \
+            commit -q -m "Data refresh $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" data

@@ -1,0 +1,38 @@
+# Midweek Merchant configuration. Environment variables override:
+#   FPL_TEAM_ID, FPL_LEAGUE_ID, ODDS_API_KEY, MM_DATA_DIR
+season: "2026-27"
+team_id: 3649661     # in6months (number in the URL of your points page)
+league_id: 1122026   # Mabingwa wa Signvrse (classic mini-league id)
+
+history_seasons: ["2023-24", "2024-25", "2025-26"]
+
+forecast:
+  horizon: 8                 # gameweeks to project
+  team_decay_per_day: 0.003  # Dixon-Coles time decay (half-life ~ 230 days)
+  xg_weight: 0.6             # weight of xG vs goals in team-strength targets
+  market_weight_next: 0.9    # weight on odds-implied lambdas for the next GW
+  market_weight_decay: 0.6   # multiplicative decay of market weight per GW further out
+  player_half_life_matches: 12
+  prior_matches: 5           # empirical-Bayes prior strength (full matches); tuned by backtest
+  n_sims: 3000
+
+optimizer:
+  horizon: 6
+  decay: 0.85
+  bench_weights: [0.03, 0.21, 0.06, 0.002]   # GK bench, then outfield bench 1..3
+  vice_weight: 0.05
+  ft_values: {1: 1.5, 2: 2.0, 3: 1.6, 4: 1.3, 5: 1.1}
+  itb_value: 0.08
+  transfer_penalty: 0.05     # small penalty per transfer to avoid churn
+  hit_cost: 4
+  max_hits_per_gw: 2
+  pool_size: 220
+  mip_gap: 0.008             # relative MIP gap (same plans as 0.003 in testing, ~4x faster)
+  time_limit: 45
+  ft_after_chip: freeze      # freeze | accrue: FTs after WC/FH weeks (freeze verified: mm diagnose ft-rule)
+  chip_option_value: {wildcard: 6.0, freehit: 5.0, bboost: 5.0, "3xc": 3.0}
+
+odds:
+  min_hours_between_calls: 12
+  regions: uk
+  markets: h2h,totals
