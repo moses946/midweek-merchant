@@ -150,7 +150,6 @@ def refresh(
     ceiling: bool = typer.Option(True, help="Also rank plans by the chance of a 100+ week"),
 ) -> None:
     """Scheduled pipeline: ingest -> forecast -> best squads -> team plan -> league -> publish."""
-    import time
     from pathlib import Path
 
     from midweek_merchant import publish, service
@@ -197,8 +196,7 @@ def refresh(
             tail_calibration(s, s.season)
     except Exception:  # noqa: BLE001
         log.exception("hindcast failed")
-    bt = s.outputs_dir / "backtest_summary.json"
-    if not bt.exists() or (time.time() - bt.stat().st_mtime) / 86400 > backtest_max_age_days:
+    if _age_days(s.outputs_dir / "backtest_summary.json") > backtest_max_age_days:
         prev = previous_seasons(s.season, 1)[0]
         try:
             run_and_save(s, prev, gws=list(range(4, 39)))
@@ -217,6 +215,21 @@ def refresh(
     if publish_dir:
         man = publish.build_bundle(s, Path(publish_dir))
         typer.echo(f"bundle: {len(man['files'])} files -> {publish_dir}")
+
+
+def _age_days(path) -> float:  # noqa: ANN001
+    """Age of a JSON output from its ``generated_at`` stamp.
+
+    File mtimes are useless here: the workflow restores outputs from the data branch with
+    fresh timestamps on every run.
+    """
+    from datetime import UTC, datetime
+
+    try:
+        stamp = datetime.fromisoformat(json.loads(path.read_text())["generated_at"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return float("inf")
+    return (datetime.now(UTC) - stamp).total_seconds() / 86400
 
 
 def _parse_gws(spec: str) -> list[int]:

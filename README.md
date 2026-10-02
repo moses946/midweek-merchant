@@ -60,11 +60,18 @@ To configure it, go to **Settings → Secrets and variables → Actions**:
 
 `ci.yml` runs ruff and the tests on pushes and PRs.
 
-**Hosting the dashboard:** deploy `app/streamlit_app.py` from this repo on
-[Streamlit Community Cloud](https://streamlit.io/cloud). `requirements.txt` installs the package. With no local
-data, the app downloads the latest bundle from the `data` branch. Interactive planning, chips and league analysis
-run live in the app. To pre-fill your IDs there, add root-level `FPL_TEAM_ID` / `FPL_LEAGUE_ID` entries to the
-app's Streamlit secrets; Streamlit exposes root-level secrets as environment variables.
+**Hosting the dashboard (Streamlit Community Cloud, free).** The app reads the `data` branch that the
+scheduled workflow publishes, so it needs no database or secrets.
+
+1. Sign in at [share.streamlit.io](https://share.streamlit.io) with GitHub.
+2. Create app → repository `moses946/midweek-merchant`, branch `main`, main file `app/streamlit_app.py` → Deploy
+   ([direct link](https://share.streamlit.io/deploy?repository=moses946/midweek-merchant&branch=main&mainModule=app/streamlit_app.py)).
+
+`requirements.txt` installs the package. With no local data, the app downloads the latest bundle from the `data`
+branch (refreshed every 6 hours). Interactive planning, chips and league analysis also run live in the app, more
+slowly than locally on the free tier. Your team and league IDs come from `config.yaml`. To use different ones, add
+root-level `FPL_TEAM_ID` / `FPL_LEAGUE_ID` entries to the app's Streamlit secrets; Streamlit exposes root-level
+secrets as environment variables.
 
 ## How it works
 

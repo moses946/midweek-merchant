@@ -44,6 +44,12 @@ def build_bundle(settings: Settings, dest: Path) -> dict:
         if f.is_file():
             shutil.copy2(f, dest / "outputs" / f.name)
             files.append(f"outputs/{f.name}")
+    hist = sorted((settings.outputs_dir / "history").glob("*.parquet"))  # pre-deadline projections archive
+    if hist:
+        (dest / "outputs" / "history").mkdir(parents=True, exist_ok=True)
+        for f in hist:
+            shutil.copy2(f, dest / "outputs" / "history" / f.name)
+            files.append(f"outputs/history/{f.name}")
     for name in PROCESSED:
         f = settings.processed_dir / f"{name}.parquet"
         if f.exists():

@@ -20,7 +20,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     env:
       ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
       FPL_TEAM_ID: ${{ vars.FPL_TEAM_ID }}
