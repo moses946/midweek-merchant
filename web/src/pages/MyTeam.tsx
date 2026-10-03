@@ -3,10 +3,21 @@ import { useMemo, useState } from 'react'
 import { PageHeader, PageSkeleton } from '../components/layout/Shell'
 import { LivePlanner } from '../components/LivePlanner'
 import { PlanExplorer, PlanTimeline } from '../components/PlanView'
-import { Badge, Card, CardHeader, Empty, Jersey, Note, PosTag, Stat, XpCell } from '../components/ui/primitives'
+import {
+  Badge,
+  Card,
+  CardHeader,
+  Empty,
+  Jersey,
+  Note,
+  PosTag,
+  Segmented,
+  Stat,
+  XpCell,
+} from '../components/ui/primitives'
 import { useMeta, usePlan, usePlayers } from '../lib/data'
 import { CHIP_NAMES, fmt, POSITIONS } from '../lib/format'
-import type { Chip, Player, TeamPlan } from '../lib/types'
+import type { Chip, ChipPlan, Player, TeamPlan } from '../lib/types'
 import { DataError } from './Errors'
 
 export default function MyTeam() {
@@ -14,7 +25,10 @@ export default function MyTeam() {
   const saved = usePlan()
   const players = usePlayers()
   const [live, setLive] = useState<TeamPlan | null>(null)
+  const [withChips, setWithChips] = useState(false)
   const plan = live ?? saved.data
+  const chipPlan = live ? null : (plan?.with_chips ?? null)
+  const shown = chipPlan && withChips ? chipPlan : plan
   if (meta.error) return <DataError error={meta.error} />
   if (!meta.data || saved.isLoading) return <PageSkeleton />
 
@@ -45,14 +59,17 @@ export default function MyTeam() {
       ) : (
         <>
           <StateStrip plan={plan} />
-          <PlanExplorer weeks={plan.weeks} />
+          {chipPlan && shown && (
+            <ChipToggle plan={plan} chipPlan={chipPlan} value={withChips} onChange={setWithChips} />
+          )}
+          <PlanExplorer key={withChips ? 'chips' : 'none'} weeks={shown?.weeks ?? plan.weeks} />
           <div className="grid grid-cols-1 gap-4 lg:gap-5 xl:grid-cols-12">
             <Card className="xl:col-span-7">
               <CardHeader
                 title="The plan at a glance"
-                hint={`Expected points over the horizon: ${plan.total_xpts.toFixed(1)}. Later weeks are discounted, so the plan favours points that are surer and sooner.`}
+                hint={`Expected points over the horizon: ${(shown ?? plan).total_xpts.toFixed(1)}. Later weeks are discounted, so the plan favours points that are surer and sooner.`}
               />
-              <PlanTimeline weeks={plan.weeks} />
+              <PlanTimeline weeks={shown?.weeks ?? plan.weeks} />
             </Card>
             <Card className="xl:col-span-5">
               <ChipsHeld plan={plan} />
@@ -62,6 +79,48 @@ export default function MyTeam() {
         </>
       )}
     </div>
+  )
+}
+
+function ChipToggle({
+  plan,
+  chipPlan,
+  value,
+  onChange,
+}: {
+  plan: TeamPlan
+  chipPlan: ChipPlan
+  value: boolean
+  onChange: (v: boolean) => void
+}) {
+  const avg = (t: number, n: number) => (n ? t / n : 0).toFixed(1)
+  const schedule = Object.entries(chipPlan.schedule)
+    .map(([gw, c]) => `${CHIP_NAMES[c]} GW${gw}`)
+    .join(', ')
+  return (
+    <Card>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <div className="text-[13.5px] font-medium text-ink">
+            {avg(plan.total_xpts, plan.weeks.length)} xPts a week without chips,{' '}
+            <span className="text-accent">{avg(chipPlan.total_xpts, chipPlan.weeks.length)}</span> with them
+          </div>
+          <div className="mt-0.5 text-[12.5px] text-muted">
+            Best schedule: {schedule}. Every schedule is solved in full, and each chip is charged the value of keeping
+            it for later.
+          </div>
+        </div>
+        <Segmented
+          className="shrink-0"
+          value={value ? 'chips' : 'none'}
+          onChange={(v) => onChange(v === 'chips')}
+          options={[
+            { value: 'none', label: 'Without chips' },
+            { value: 'chips', label: 'With best chips' },
+          ]}
+        />
+      </div>
+    </Card>
   )
 }
 

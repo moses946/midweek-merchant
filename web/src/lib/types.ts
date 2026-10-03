@@ -164,6 +164,16 @@ export interface TeamPlan {
   total_xpts: number
   weeks: PlanWeek[]
   chips?: ChipReport
+  /** The best plan that also plays chips (scheduled run only). */
+  with_chips?: ChipPlan | null
+}
+
+export interface ChipPlan {
+  schedule: Record<string, Chip>
+  status: string
+  objective: number
+  total_xpts: number
+  weeks: PlanWeek[]
 }
 
 export interface BestSquads {

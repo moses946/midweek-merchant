@@ -193,3 +193,22 @@ def test_bought_player_sells_at_selling_price(proj: pd.DataFrame) -> None:
     spent = info.loc[w.transfers_in, "now_cost"].sum() if w.transfers_in else 0
     got = sum(sell[e] for e in w.transfers_out)
     assert w.bank == st.bank + got - spent
+
+
+def test_best_chip_plan_search(proj: pd.DataFrame) -> None:
+    from midweek_merchant.optimize.chips import best_chip_plan, exact_values
+
+    st = initial_state(proj, chips={"wildcard": [1], "bboost": [1]})
+    free = {"wildcard": 0.0, "freehit": 0.0, "bboost": 0.0, "3xc": 0.0}
+    opts = PlanOptions(horizon=4, time_limit=30, mip_gap=0.01, chip_option_value=free)
+    base, exact = exact_values(proj, st, RULES, opts, max_workers=2)
+    found = best_chip_plan(proj, st, RULES, opts, exact, max_workers=2)
+    assert found is not None
+    plan, schedule = found
+    check_plan(plan, proj, st, opts)
+    assert {w.gw: w.chip for w in plan.weeks if w.chip} == schedule
+    assert set(schedule.values()) == {"wildcard", "bboost"}  # both are free to play here
+    assert plan.objective >= base.objective - 1e-6
+    # chips worth less than keeping them are held
+    dear = PlanOptions(horizon=4, time_limit=30, chip_option_value={"wildcard": 500.0, "bboost": 500.0})
+    assert best_chip_plan(proj, st, RULES, dear, exact) is None

@@ -23,6 +23,7 @@ class ForecastConfig(BaseModel):
     # fitted by `mm diagnose minutes`; empty = no calibration
     minutes_calibration: dict[str, list[list[float]]] = Field(default_factory=dict)
     attrition_per_gw: float = 0.0
+    next_gw_points_calibration: list[list[float]] = Field(default_factory=list)
     market_weight_next: float = 0.9
     market_weight_decay: float = 0.6
     player_half_life_matches: float = 12

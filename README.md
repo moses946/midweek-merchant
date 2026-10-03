@@ -163,6 +163,12 @@ data. It can be hosted on [Streamlit Community Cloud](https://share.streamlit.io
     (the bonus points system changed this season).
 - **Points**: the 2026/27 scoring rules give analytic xPts per fixture, summed across double gameweeks. The rules
   engine reproduces every line of FPL's official points breakdown in the test data.
+  - Forecasts for the coming gameweek under-rated the best players: actual points rose 1.12 per predicted point
+    in 2025-26.
+  - So the next gameweek's xPts go through a monotone curve fitted on every 2025-26 gameweek
+    (`uv run mm diagnose points`). On 2026-27 it cut RMSE from 2.154 to 2.149 and raised the top players'
+    projections by 3–4%.
+  - Later weeks are left alone, because there unforeseen absences push the other way.
 - **Simulation**: a correlated Monte Carlo draws scorelines and allocates goals and assists to the players on the
   pitch, so teammates and opponents are properly correlated. The mini-league layer uses it.
 
@@ -178,6 +184,12 @@ data. It can be hosted on [Streamlit Community Cloud](https://share.streamlit.io
 - **Objective**: expected points with weekly decay, plus bench weights, a terminal value for banked free
   transfers, and an option value for unused chips.
 - **Extras**: alternative plans (via no-good cuts) and noisy re-solves for sensitivity.
+- **Plan with chips**: the headline plan holds every chip, and the Chips page tests each chip in each week.
+  - The scheduled run also builds the best plan that plays chips. Each chip schedule is solved with its chips
+    forced, in seconds; the search moves one chip at a time and keeps the best objective, after charging each
+    chip its hold value.
+  - Letting the solver place all chips at once ran into its time limit with a worse plan.
+  - My team switches between the two plans.
 
 ### Mini-league strategy
 
@@ -334,5 +346,6 @@ uv run ruff check src tests app && uv run ruff format src tests app
 uv run mm backtest     # rolling backtest on 2025-26 (with odds, and without odds 0-5 weeks ahead)
 uv run mm diagnose team-strength   # tune team ratings against goals; compare with the market
 uv run mm diagnose minutes         # fit the minutes calibration curves on 2025-26, check on 2026-27
+uv run mm diagnose points          # fit the next-gameweek xPts calibration on 2025-26, check on 2026-27
 cd web && npm run format && npm run lint && npm run build   # dashboard
 ```

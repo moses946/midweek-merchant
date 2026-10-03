@@ -24,6 +24,10 @@ forecast:
   # 4-10% (2025/26) and 2-3% (2026/27 so far), growing with the horizon: injuries, bans and drops
   # pile up. ~2.2%/week fits 2025/26, ~1.2% this season; 1.5% splits them.
   attrition_per_gw: 0.015
+  # Next-gameweek xPts calibration (`mm diagnose points`): forecasts for the coming gameweek
+  # under-rate the best players (actual on predicted slope 1.12 in 2025/26). Fitted on every
+  # 2025/26 gameweek; on 2026/27 RMSE 2.154 -> 2.149 without odds, 2.143 -> 2.139 with them.
+  next_gw_points_calibration: [[0.0, 0.0], [0.1363, 0.0516], [0.3625, 0.2855], [0.7294, 0.7574], [1.2784, 1.2354], [1.7523, 1.6318], [2.2419, 2.144], [2.751, 2.8159], [3.23, 3.316], [3.7251, 3.9159], [4.2034, 4.3259], [5.3736, 5.514]]
   n_sims: 3000
   # Minutes calibration: monotone maps from the minutes model's raw start / 60-minute rates to
   # what happened, fitted on point-in-time 2025/26 backtests (`mm diagnose minutes`); validated on

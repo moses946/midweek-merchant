@@ -180,6 +180,10 @@ def refresh(
             extra = {}
             if chips and state.chips_available:
                 extra["chips"] = service.chip_report(s, state, horizon=6, exact=True)
+                try:
+                    extra["with_chips"] = service.chip_plan(s, state, extra["chips"], horizon=6)
+                except Exception:  # noqa: BLE001 - the no-chip plan still gets saved
+                    log.exception("chip plan failed")
             service.save_plan(s, s.team_id, state, pl, fc.projections, extra)
             log.info("plan for %s saved", s.team_id)
             if s.league_id:
@@ -545,6 +549,36 @@ def minutes_cal(
                 f"after {a['bin']:<12} {a['predicted']:.3f}->{a['actual']:.3f}"
             )
     typer.echo("config.yaml forecast.minutes_calibration:\n" + json.dumps(out["curves"]))
+
+
+@diagnose_app.command("points")
+def points_cal(
+    fit_season: str = typer.Option("2025-26"),
+    check_season: str = typer.Option("2026-27"),
+) -> None:
+    """Fit the next-gameweek xPts calibration on one season and check it on another."""
+    import json
+
+    from midweek_merchant.backtest.points_calibration import calibrate
+    from midweek_merchant.data.store import read_table
+
+    s = get_settings()
+    pm = read_table(s, "player_matches")
+    last = int(pm.loc[pm["season"] == check_season, "gw"].max())
+    out = calibrate(s, fit_season, list(range(3, 39)), check_season, list(range(2, last + 1)))
+    for name in ("no_odds", "with_odds"):
+        c = out["check"][name]
+        b, a = c["before"], c["after"]
+        typer.echo(
+            f"{check_season} {name} ({c['rows']} rows): RMSE {b['rmse']:.4f} -> {a['rmse']:.4f}  "
+            f"bias {b['bias']:+.3f} -> {a['bias']:+.3f}  slope {b['slope']:.3f} -> {a['slope']:.3f}"
+        )
+        for rb, ra in zip(b["by_rank"], a["by_rank"], strict=True):
+            typer.echo(
+                f"   ranks {rb['ranks']:<8} predicted {rb['predicted']:.2f} -> {ra['predicted']:.2f}"
+                f"  actual {rb['actual']:.2f}"
+            )
+    typer.echo("config.yaml forecast.next_gw_points_calibration:\n" + json.dumps(out["curve"]))
 
 
 @diagnose_app.command("ft-rule")

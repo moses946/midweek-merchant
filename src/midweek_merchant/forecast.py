@@ -19,7 +19,7 @@ from midweek_merchant.features.panel import build_panel
 from midweek_merchant.models import minutes as minutes_model
 from midweek_merchant.models.player_rates import RateParams, fit_rates
 from midweek_merchant.models.team_strength import fit_ratings, project_fixtures, team_fixture_rows
-from midweek_merchant.models.xpts import fixture_xpts, gameweek_xpts
+from midweek_merchant.models.xpts import calibrate_points, fixture_xpts, gameweek_xpts
 from midweek_merchant.rules import Rules, rules_from_bootstrap
 
 log = logging.getLogger(__name__)
@@ -181,6 +181,7 @@ def forecast_core(
     )
     rows = rows.merge(rates.drop(columns=["code"]), on="element", how="left")
     fx_x = fixture_xpts(rows, params, rules)
+    fx_x = calibrate_points(fx_x, cfg.next_gw_points_calibration, fx_x["gw"].to_numpy() == next_gw)
     gw_x = gameweek_xpts(fx_x, players["element"], gws, short)
     info = players[[c for c in INFO_COLS if c in players.columns]]
     gw_x = info.merge(gw_x, on="element", how="right")
@@ -244,6 +245,8 @@ def save_forecast(settings: Settings, fc: Forecast) -> None:
         "yc90",
         "rc90",
         "xpts",
+        "xpts_raw",
+        "pts_scale",
         "position",
         "rho",
     ]
