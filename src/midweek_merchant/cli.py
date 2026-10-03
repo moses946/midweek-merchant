@@ -217,6 +217,30 @@ def refresh(
         typer.echo(f"bundle: {len(man['files'])} files -> {publish_dir}")
 
 
+@app.command("export-web")
+def export_web(
+    out: str = typer.Option("web/public/data", help="Directory for the React dashboard's JSON bundle"),
+) -> None:
+    """Write the JSON bundle the React dashboard reads (from existing outputs; no model runs)."""
+    from pathlib import Path
+
+    from midweek_merchant.web_export import export_web as run_export
+
+    meta = run_export(get_settings(), Path(out))
+    typer.echo(f"web bundle for GW{meta['next_gw']} ({meta['players']} players) -> {out}")
+
+
+@app.command()
+def serve(
+    host: str = typer.Option("127.0.0.1"),
+    port: int = typer.Option(8000),
+) -> None:
+    """HTTP API for the React dashboard's live planner (needs the ``api`` extra)."""
+    import uvicorn
+
+    uvicorn.run("midweek_merchant.api:app", host=host, port=port)
+
+
 def _age_days(path) -> float:  # noqa: ANN001
     """Age of a JSON output from its ``generated_at`` stamp.
 

@@ -2,8 +2,9 @@
 
 The scheduled GitHub Action writes ``outputs/``, the small ``processed/`` tables and
 the point-in-time snapshot archive to an orphan ``data`` branch (force-pushed as a
-single commit so the repository does not grow). The dashboard reads that bundle when
-it has no local data, e.g. on Streamlit Community Cloud.
+single commit so the repository does not grow). The Streamlit app reads that bundle when
+it has no local data, e.g. on Streamlit Community Cloud; the React dashboard reads the
+JSON files under ``web/`` (see ``web_export``).
 """
 
 from __future__ import annotations
@@ -67,6 +68,12 @@ def build_bundle(settings: Settings, dest: Path) -> dict:
             (dest / "raw" / rel.parent).mkdir(parents=True, exist_ok=True)
             shutil.copy2(f, dest / "raw" / rel)
     manifest = {"generated_at": datetime.now(UTC).isoformat(timespec="seconds"), "files": files}
+    try:  # the React dashboard's JSON bundle; never block publishing the rest
+        from midweek_merchant.web_export import export_web
+
+        manifest["web"] = export_web(settings, dest / "web")["files"]
+    except Exception:  # noqa: BLE001
+        log.exception("web export failed")
     (dest / "manifest.json").write_text(json.dumps(manifest, indent=1))
     return manifest
 
