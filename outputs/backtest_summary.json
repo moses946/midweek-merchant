@@ -1,0 +1,194 @@
+{
+ "season": "2025-26",
+ "generated_at": "2026-10-02T06:54:25+00:00",
+ "gws": [
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20,
+  21,
+  22,
+  23,
+  24,
+  25,
+  26,
+  27,
+  28,
+  29,
+  30,
+  31,
+  32,
+  33,
+  34,
+  35,
+  36,
+  37,
+  38
+ ],
+ "metrics": [
+  {
+   "subset": "all players",
+   "predictor": "model",
+   "n": 27157,
+   "rmse": 1.9089004879596632,
+   "mae": 0.9595703458676532,
+   "bias": -0.009458355198315359,
+   "spearman_within_pos": 0.7340519372602845
+  },
+  {
+   "subset": "all players",
+   "predictor": "form (last 4)",
+   "n": 27157,
+   "rmse": 2.351113907854973,
+   "mae": 1.3258674865903204,
+   "bias": 0.4383124056412711,
+   "spearman_within_pos": 0.6596560672859813
+  },
+  {
+   "subset": "all players",
+   "predictor": "FPL ep (pre-deadline)",
+   "n": 27157,
+   "rmse": 2.1243050324688526,
+   "mae": 1.0646205398239865,
+   "bias": -0.0540523621902272,
+   "spearman_within_pos": 0.6957304822119291
+  },
+  {
+   "subset": "played (1+ min)",
+   "predictor": "model",
+   "n": 10442,
+   "rmse": 2.9263842570000613,
+   "mae": 1.965347640431693,
+   "bias": -0.5548508306321367,
+   "spearman_within_pos": 0.3307302598091933
+  },
+  {
+   "subset": "played (1+ min)",
+   "predictor": "form (last 4)",
+   "n": 10442,
+   "rmse": 3.2128282841500293,
+   "mae": 2.271356062057077,
+   "bias": -0.03560939794419971,
+   "spearman_within_pos": 0.2194870670546982
+  },
+  {
+   "subset": "played (1+ min)",
+   "predictor": "FPL ep (pre-deadline)",
+   "n": 10442,
+   "rmse": 3.2898998330804448,
+   "mae": 2.3010630147481326,
+   "bias": -0.4363819191725723,
+   "spearman_within_pos": 0.264360766914795
+  },
+  {
+   "subset": "regular starters (xMins >= 60)",
+   "predictor": "model",
+   "n": 5204,
+   "rmse": 3.1302041136741865,
+   "mae": 2.344380685388398,
+   "bias": -0.13501779596564709,
+   "spearman_within_pos": 0.26233618444124707
+  },
+  {
+   "subset": "regular starters (xMins >= 60)",
+   "predictor": "form (last 4)",
+   "n": 5204,
+   "rmse": 3.557553177714153,
+   "mae": 2.7339066102997696,
+   "bias": 0.32937804253138614,
+   "spearman_within_pos": 0.11035476196198232
+  },
+  {
+   "subset": "regular starters (xMins >= 60)",
+   "predictor": "FPL ep (pre-deadline)",
+   "n": 5204,
+   "rmse": 3.5714250466656594,
+   "mae": 2.6771714066102996,
+   "bias": 0.1895849346656418,
+   "spearman_within_pos": 0.18544944254831616
+  }
+ ],
+ "calibration": [
+  {
+   "predicted": 0.4388761150757979,
+   "actual": 0.42669584245076586,
+   "n": 1371
+  },
+  {
+   "predicted": 0.9143749489887094,
+   "actual": 1.140043763676149,
+   "n": 1371
+  },
+  {
+   "predicted": 1.3472737568630728,
+   "actual": 1.2895696571845368,
+   "n": 1371
+  },
+  {
+   "predicted": 1.7059675463986839,
+   "actual": 1.5703865791393143,
+   "n": 1371
+  },
+  {
+   "predicted": 2.034009600035513,
+   "actual": 1.9540481400437637,
+   "n": 1371
+  },
+  {
+   "predicted": 2.3501558266051803,
+   "actual": 2.2341356673960613,
+   "n": 1371
+  },
+  {
+   "predicted": 2.668246147864252,
+   "actual": 2.7592997811816193,
+   "n": 1371
+  },
+  {
+   "predicted": 2.9942256585519282,
+   "actual": 3.134938001458789,
+   "n": 1371
+  },
+  {
+   "predicted": 3.4180136021911123,
+   "actual": 3.5929978118161925,
+   "n": 1371
+  },
+  {
+   "predicted": 4.4510932206981435,
+   "actual": 4.636761487964989,
+   "n": 1371
+  }
+ ],
+ "top_picks": [
+  {
+   "predictor": "model",
+   "mean points of top 10": 5.237142857142857
+  },
+  {
+   "predictor": "form (last 4)",
+   "mean points of top 10": 3.1914285714285717
+  },
+  {
+   "predictor": "FPL ep (pre-deadline)",
+   "mean points of top 10": 4.577142857142858
+  },
+  {
+   "predictor": "hindsight best",
+   "mean points of top 10": 12.951428571428574
+  }
+ ]
+}

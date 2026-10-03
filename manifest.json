@@ -1,0 +1,32 @@
+{
+ "generated_at": "2026-10-03T16:34:35+00:00",
+ "files": [
+  "outputs/backtest_predictions.parquet",
+  "outputs/backtest_summary.json",
+  "outputs/best_squads.json",
+  "outputs/ceiling_3649661.json",
+  "outputs/fixture_lambdas.parquet",
+  "outputs/fixture_xpts.parquet",
+  "outputs/forecast_meta.json",
+  "outputs/hindcast_2025-26.json",
+  "outputs/hindcast_2026-27.json",
+  "outputs/league_1122026.json",
+  "outputs/plan_3649661.json",
+  "outputs/projections.parquet",
+  "outputs/tail_calibration.json",
+  "outputs/tail_calibration_2025-26.json",
+  "outputs/tail_calibration_2026-27.json",
+  "outputs/team_ratings.parquet",
+  "outputs/history/projections_gw06.parquet",
+  "processed/players.parquet",
+  "processed/teams.parquet",
+  "processed/events.parquet",
+  "processed/fixtures.parquet",
+  "processed/player_matches.parquet",
+  "processed/team_matches.parquet",
+  "processed/fd_e1.parquet",
+  "processed/market_odds.parquet",
+  "processed/player_snapshots.parquet",
+  "raw/fpl/bootstrap.json"
+ ]
+}
