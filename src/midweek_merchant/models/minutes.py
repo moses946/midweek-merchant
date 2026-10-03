@@ -198,6 +198,15 @@ def availability(players: pd.DataFrame, fixture_rows: pd.DataFrame, next_gw: int
     return pd.Series(vals, index=fixture_rows.index)
 
 
+def apply_curve(x: np.ndarray, knots: list[list[float]] | None) -> np.ndarray:
+    """Piecewise-linear monotone map through ``knots`` ([[x, y], ...]); identity without knots."""
+    x = np.asarray(x, dtype=float)
+    if not knots:
+        return x
+    kx, ky = np.array(knots, dtype=float).T
+    return np.clip(np.interp(x, kx, ky), 0.0, 0.99)
+
+
 def fixture_minutes(
     profiles: pd.DataFrame,
     players: pd.DataFrame,
@@ -205,17 +214,28 @@ def fixture_minutes(
     next_gw: int,
     ref: datetime,
     overrides: dict[int, dict] | None = None,
+    calibration: dict[str, list[list[float]]] | None = None,
+    attrition: float = 0.0,
 ) -> pd.DataFrame:
     """Per (element, fixture) state probabilities and minutes.
 
     States: S60 (start, 60+), SLT (start, <60), SUB (bench appearance), none.
+    ``calibration`` maps the raw start and 60-minute probabilities through monotone curves fitted
+    on point-in-time backtests (regular starters play more than their recency-weighted rates
+    suggest); availability news is applied after it. ``attrition`` is the share of players
+    available today who will miss a given gameweek k weeks out through injuries, suspensions and
+    drops not yet known: availability falls by (1 - attrition)^k.
     """
     df = fixture_rows.merge(profiles, on="element", how="left")
-    df["avail"] = availability(players, df, next_gw, ref).to_numpy()
     k = (df["gw"].astype(int) - next_gw).clip(lower=0)
+    df["avail"] = availability(players, df, next_gw, ref).to_numpy() * (1 - attrition) ** k.to_numpy()
     base = df["p_start_long"] + (df["p_start_recent"] - df["p_start_long"]) * 0.85**k
     # A regular returning from a long absence starts less often at first.
     base = np.where(df["returning"] & (k == 0), base * 0.75, base)
+    df["p_start_raw"], df["q60_raw"] = np.clip(base, 0, 0.99), df["q60"]
+    if calibration:
+        base = apply_curve(np.clip(base, 0, 0.99), calibration.get("start"))
+        df["q60"] = apply_curve(df["q60"].to_numpy(float), calibration.get("q60"))
     df["p_start"] = np.clip(base, 0, 0.99) * df["avail"]
     df["p_sub_app"] = (1 - np.clip(base, 0, 0.99)) * df["p_sub"] * df["avail"]
     if overrides:

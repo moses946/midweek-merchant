@@ -24,7 +24,7 @@ from scipy.stats import spearmanr
 from midweek_merchant.config import Settings
 from midweek_merchant.data import odds
 from midweek_merchant.data.store import read_table, write_output
-from midweek_merchant.forecast import forecast_core, load_rules
+from midweek_merchant.forecast import Forecast, forecast_core, load_rules
 from midweek_merchant.rules import Rules
 
 log = logging.getLogger(__name__)
@@ -58,8 +58,8 @@ def load_tables(settings: Settings) -> Tables:
     snaps_path = settings.processed_dir / "player_snapshots.parquet"
     return Tables(
         pm=read_table(settings, "player_matches"),
-        tm=read_table(settings, "team_matches"),
-        e1=read_table(settings, "fd_e1"),
+        tm=odds.ensure_market_lambdas(read_table(settings, "team_matches"), settings),
+        e1=odds.ensure_market_lambdas(read_table(settings, "fd_e1"), settings),
         snaps=pd.read_parquet(snaps_path) if snaps_path.exists() else pd.DataFrame(),
         events=read_table(settings, "events"),
     )
@@ -125,7 +125,8 @@ def point_in_time_inputs(
         if len(ev):
             deadline = pd.Timestamp(ev["deadline_time"].iloc[0])
     cutoff = first_ko.tz_convert("Europe/London").date().isoformat()
-    cols = ["date", "league", "home", "away", "hg", "ag", "hxg", "axg"]
+    # hmk/amk: λ from each earlier match's opening odds, known before that match kicked off
+    cols = ["date", "league", "home", "away", "hg", "ag", "hxg", "axg", "hmk", "amk"]
     team_hist = pd.concat(
         [
             t.tm.loc[t.tm["finished"].fillna(False).astype(bool) & (t.tm["date"] < cutoff), cols],
@@ -167,8 +168,13 @@ def point_in_time_inputs(
 
 def point_in_time_forecast(settings: Settings, t: Tables, inp: PITInputs, rules: Rules) -> pd.DataFrame:
     """xPts for one past gameweek using only pre-deadline inputs."""
+    return point_in_time_fc(settings, t, inp, rules).projections
+
+
+def point_in_time_fc(settings: Settings, t: Tables, inp: PITInputs, rules: Rules) -> Forecast:
+    """The full forecast (per-fixture rows included) for one past gameweek."""
     teams = set(inp.upcoming["home"]) | set(inp.upcoming["away"])
-    fc = forecast_core(
+    return forecast_core(
         settings,
         inp.players,
         inp.upcoming,
@@ -184,7 +190,6 @@ def point_in_time_forecast(settings: Settings, t: Tables, inp: PITInputs, rules:
         rules,
         {},
     )
-    return fc.projections
 
 
 def backtest_season(
@@ -297,10 +302,118 @@ def top_pick_precision(df: pd.DataFrame, k: int = 10) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def run_and_save(settings: Settings, season: str = "2025-26", gws: list[int] | None = None) -> dict:
+RANK_BINS = ((1, 10), (11, 30), (31, 60), (61, 120), (121, 250))
+
+
+def top_calibration(df: pd.DataFrame, key: tuple[str, ...] = ("gw",)) -> pd.DataFrame:
+    """Predicted vs actual points by each gameweek's prediction rank (the players a manager picks)."""
+    d = df.assign(rank=df.groupby(list(key))["xpts"].rank(ascending=False, method="first"))
+    rows = []
+    for lo, hi in RANK_BINS:
+        b = d[(d["rank"] >= lo) & (d["rank"] <= hi)]
+        rows.append(
+            {
+                "ranks": f"{lo}-{hi}",
+                "predicted": float(b["xpts"].mean()),
+                "actual": float(b["points"].mean()),
+                "n": len(b),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def horizon_backtest(
+    settings: Settings,
+    season: str,
+    origins: list[int],
+    horizon: int = 6,
+    use_market: bool = False,
+    t: Tables | None = None,
+) -> pd.DataFrame:
+    """Forecast from each origin gameweek up to ``horizon`` gameweeks ahead, as the live planner does.
+
+    Inputs are those of the origin deadline. Without ``use_market`` no odds are used at all,
+    which is how the live forecast runs for most of its horizon.
+    """
+    rules = load_rules(settings)
+    t = t or load_tables(settings)
+    pm_s = t.pm[t.pm["season"] == season]
+    actual = (
+        pm_s.groupby(["element", "gw"])
+        .agg(points=("points", "sum"), minutes=("minutes", "sum"))
+        .reset_index()
+    )
+    out = []
+    for origin in origins:
+        inp = point_in_time_inputs(settings, t, season, origin, use_market)
+        if inp is None:
+            continue
+        gws = list(range(origin, min(38, origin + horizon - 1) + 1))
+        fx = t.tm[(t.tm["season"] == season) & t.tm["gw"].isin(gws)]
+        upcoming = fx[["gw", "fixture", "kickoff_time", "home", "away"]].copy()
+        teams = set(upcoming["home"]) | set(upcoming["away"])
+        fc = forecast_core(
+            settings,
+            inp.players,
+            upcoming,
+            t.pm,
+            t.tm,
+            inp.team_hist,
+            inp.market,
+            season,
+            origin,
+            gws,
+            inp.deadline,
+            {x: x for x in teams},
+            rules,
+            {},
+        )
+        pred = fc.projections[["element", "position", "gw", "xpts", "xmins"]]
+        res = pred.merge(actual, on=["element", "gw"], how="inner")
+        res["origin"], res["ahead"] = origin, res["gw"] - origin
+        out.append(res)
+        log.info("horizon backtest %s from GW%d: %d rows", season, origin, len(res))
+    return pd.concat(out, ignore_index=True) if out else pd.DataFrame()
+
+
+def horizon_metrics(df: pd.DataFrame) -> pd.DataFrame:
+    """Accuracy by weeks ahead, plus how the players a manager would pick (ranks 1-120) fare."""
+    rows = []
+    for ahead, d in df.groupby("ahead"):
+        err = d["xpts"] - d["points"]
+        sp = np.nanmean(
+            [
+                spearmanr(g["xpts"], g["points"]).statistic
+                for _, g in d.groupby(["origin", "position"])
+                if len(g) > 10 and g["xpts"].nunique() > 1 and g["points"].nunique() > 1
+            ]
+        )
+        top = d[d.groupby("origin")["xpts"].rank(ascending=False, method="first") <= 120]
+        rows.append(
+            {
+                "ahead": int(ahead),
+                "n": len(d),
+                "rmse": float(np.sqrt((err**2).mean())),
+                "bias": float(err.mean()),
+                "spearman_within_pos": float(sp),
+                "top120_predicted": float(top["xpts"].mean()),
+                "top120_actual": float(top["points"].mean()),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def run_and_save(
+    settings: Settings,
+    season: str = "2025-26",
+    gws: list[int] | None = None,
+    horizon_origins: list[int] | None = None,
+) -> dict:
     df = backtest_season(settings, season, gws)
     met, cal, top = metrics(df), calibration(df), top_pick_precision(df)
     write_output(settings, "backtest_predictions.parquet", df)
+    origins = horizon_origins if horizon_origins is not None else list(range(5, 34, 2))
+    hz = horizon_backtest(settings, season, origins) if origins else pd.DataFrame()
     summary = {
         "season": season,
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
@@ -308,6 +421,12 @@ def run_and_save(settings: Settings, season: str = "2025-26", gws: list[int] | N
         "metrics": met.to_dict("records"),
         "calibration": cal.to_dict("records"),
         "top_picks": top.to_dict("records"),
+        "top_calibration": top_calibration(df).to_dict("records"),
+        # the live configuration: no odds, one to six gameweeks ahead
+        "horizon": horizon_metrics(hz).to_dict("records") if len(hz) else [],
+        "horizon_top_calibration": top_calibration(hz, ("origin", "gw")).to_dict("records")
+        if len(hz)
+        else [],
     }
     write_output(settings, "backtest_summary.json", summary)
     return summary

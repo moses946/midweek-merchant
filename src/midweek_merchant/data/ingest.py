@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -19,6 +20,10 @@ log = logging.getLogger(__name__)
 def previous_seasons(season: str, n: int) -> list[str]:
     start = int(season[:4])
     return [f"{y}-{str(y + 1)[-2:]}" for y in range(start - n, start)]
+
+
+def _market_cache(settings: Settings) -> Path:
+    return settings.raw_dir / "football_data" / "market_lambdas.parquet"
 
 
 def ingest(settings: Settings, history_refresh: bool = True, use_odds_api: bool = True) -> dict[str, int]:
@@ -71,6 +76,7 @@ def ingest(settings: Settings, history_refresh: bool = True, use_odds_api: bool 
         # fill missing FPL xG with football-data xG where available
         for a, b in (("hxg", "hxg_fd"), ("axg", "axg_fd")):
             tm_e0[a] = tm_e0[a].fillna(tm_e0[b])
+        tm_e0 = odds.attach_market_lambdas(tm_e0, _market_cache(settings))
     write_table(settings, "team_matches", tm_e0)
 
     # ---- point-in-time player snapshots (news, prices, FPL ep) for hindcasts/backtests
@@ -81,7 +87,7 @@ def ingest(settings: Settings, history_refresh: bool = True, use_odds_api: bool 
     if len(fd):
         e1 = fd[fd["league"] == "E1"].rename(columns={"hxg_fd": "hxg", "axg_fd": "axg"})
         e1["finished"] = e1["hg"].notna()
-        write_table(settings, "fd_e1", e1)
+        write_table(settings, "fd_e1", odds.attach_market_lambdas(e1, _market_cache(settings)))
 
     # ---- upcoming market odds
     deadline = _next_deadline(events)

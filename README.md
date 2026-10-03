@@ -131,15 +131,28 @@ data. It can be hosted on [Streamlit Community Cloud](https://share.streamlit.io
 
 - **Team strength**
   - Fits a time-decayed, ridge-regularised Poisson model (Dixon–Coles family, with low-score correction ρ)
-    to a blend of goals and xG.
+    to a blend of goals, xG and the goal expectancy implied by each past match's opening odds.
+  - The market target matters most. Without it the ratings were far flatter than the bookmakers', which
+    understated favourites, and with them good teams' attackers and clean sheets.
+  - `uv run mm diagnose team-strength` tunes decay, ridge and the market weight point-in-time over 2024-25 and
+    2025-26, scoring forecasts for the next six gameweeks against goals scored. Poisson deviance improved from
+    1.082 to 1.062; the bookmakers' own opening odds score 1.061 on the same fixtures. That means the
+    ratings now match the market even for fixtures with no odds yet.
   - Championship matches are included so promoted clubs get ratings.
-  - Bookmaker odds (1X2 and over/under, with the margin removed) are converted to goal expectancies. These are
-    added to the fit as pseudo-observations and blended into the nearest fixtures.
+  - Bookmaker odds (1X2 and over/under, with the margin removed) are converted to goal expectancies. For
+    upcoming fixtures that have odds, they are added to the fit as pseudo-observations and blended into the
+    nearest fixtures.
 - **Minutes**
   - Uses recency-weighted rates of starting, lasting 60 minutes and coming off the bench.
   - Runs of three or more zero-minute games are treated as absences, not rotation.
   - FPL status, chance of playing, "Expected back <date>" news and loan restrictions set availability per
     fixture.
+  - Raw start and 60-minute rates are mapped through monotone curves fitted on 2025-26 backtests
+    (`uv run mm diagnose minutes`). The recency-weighted rates were too cautious for regular starters: a
+    0.83 chance of 60+ minutes came true 90% of the time. Checked on 2026-27, the Brier score for 60+
+    minutes fell from 0.1062 to 0.1052.
+  - Each week further ahead, availability falls 1.5% for injuries, bans and drops not yet known. Without
+    this, forecasts 2–6 weeks out over-predicted total points by 4–10%.
   - You can override availability manually in the UI.
 - **Player rates**
   - Each player's share of team xG and xA is estimated with empirical-Bayes shrinkage towards price/position
@@ -247,6 +260,26 @@ The test is rolling-origin with the same point-in-time inputs.
 Calibration is close to the diagonal across deciles. The scheduled job refreshes the backtest and hindcasts weekly
 (this season's hindcast on every run). The dashboard's Track record and Model health pages show them.
 
+### Without odds, weeks ahead (how the live planner runs)
+
+The table above gives the model each gameweek's opening odds. Live, odds usually exist only for the next round,
+or none at all, while the planner looks six weeks ahead. So the backtest also forecasts from 15 origin gameweeks
+of 2025-26 up to five weeks ahead, with no odds:
+
+| Weeks ahead | RMSE | Bias (pts/player) | Rank corr. within position | Top-120: predicted | Top-120: actual |
+|---|---|---|---|---|---|
+| 0 | 1.90 | −0.00 | 0.74 | 3.60 | 3.84 |
+| 1 | 2.01 | +0.04 | 0.69 | 3.47 | 3.43 |
+| 2 | 2.02 | +0.04 | 0.67 | 3.48 | 3.39 |
+| 3 | 2.07 | +0.05 | 0.65 | 3.43 | 3.35 |
+| 4 | 2.07 | +0.04 | 0.64 | 3.42 | 3.25 |
+| 5 | 2.07 | +0.05 | 0.62 | 3.31 | 3.13 |
+
+- The next gameweek is as accurate without odds as with them, now that the team ratings track the market.
+- The best players are under-predicted for the next week, by about 6% for the top 120.
+- Further out, projections run a few percent high, even after the 1.5%-a-week absence allowance.
+- Read a projected total for weeks 3–6 as a slightly optimistic mean, not as a floor.
+
 ### Verified rule details
 
 - Rules are read live from FPL's `game_config`. Key values: goalkeeper goal 10, DefCon +2, `max_extra_free_transfers` 4, sell-on fee 50%.
@@ -298,6 +331,8 @@ Requests are throttled and cached. Please keep them that way.
 ```bash
 uv run pytest          # rules, optimiser property tests, simulation/league tests
 uv run ruff check src tests app && uv run ruff format src tests app
-uv run mm backtest     # rolling backtest on 2025-26
+uv run mm backtest     # rolling backtest on 2025-26 (with odds, and without odds 0-5 weeks ahead)
+uv run mm diagnose team-strength   # tune team ratings against goals; compare with the market
+uv run mm diagnose minutes         # fit the minutes calibration curves on 2025-26, check on 2026-27
 cd web && npm run format && npm run lint && npm run build   # dashboard
 ```

@@ -245,6 +245,44 @@ def implied_lambdas(
     return float(lh), float(la)
 
 
+MARKET_KEY = ["oh", "od", "oa", "o_over", "o_under"]
+
+
+def attach_market_lambdas(df: pd.DataFrame, cache_path: Path | None = None) -> pd.DataFrame:
+    """Add ``hmk``/``amk``: goal expectancies implied by each match's *opening* odds.
+
+    Opening odds are set before kick-off, so for a finished match they are point-in-time
+    information. Solving them takes ~20 ms per match, so results are cached by the odds
+    themselves (a change of odds re-solves).
+    """
+    out = df.copy()
+    out["hmk"], out["amk"] = np.nan, np.nan
+    if df.empty or not set(MARKET_KEY).issubset(df.columns):
+        return out
+    cache = pd.read_parquet(cache_path) if cache_path is not None and cache_path.exists() else pd.DataFrame()
+    known = {tuple(r[:5]): (r[5], r[6]) for r in cache.itertuples(index=False)} if len(cache) else {}
+    for i, r in zip(out.index, out[MARKET_KEY].itertuples(index=False), strict=True):
+        if not all(np.isfinite([r.oh, r.od, r.oa])):
+            continue
+        key = tuple(round(float(v), 4) if np.isfinite(v) else -1.0 for v in r)
+        if key not in known:
+            known[key] = fd_row_lambdas(pd.Series(r._asdict()))
+        out.at[i, "hmk"], out.at[i, "amk"] = known[key]
+    if cache_path is not None and known:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame([(*k, *v) for k, v in known.items()], columns=[*MARKET_KEY, "hmk", "amk"]).to_parquet(
+            cache_path, index=False
+        )
+    return out
+
+
+def ensure_market_lambdas(df: pd.DataFrame, settings: Settings) -> pd.DataFrame:
+    """``df`` with hmk/amk, solving (cached) when an older table lacks them."""
+    if {"hmk", "amk"}.issubset(df.columns):
+        return df
+    return attach_market_lambdas(df, settings.raw_dir / "football_data" / "market_lambdas.parquet")
+
+
 def fd_row_lambdas(row: pd.Series, closing: bool = False) -> tuple[float, float]:
     oh, od, oa = (row["ch"], row["cd"], row["ca"]) if closing else (row["oh"], row["od"], row["oa"])
     ov, un = (row["c_over"], row["c_under"]) if closing else (row["o_over"], row["o_under"])

@@ -18,7 +18,7 @@ import { PageHeader, PageSkeleton } from '../components/layout/Shell'
 import { Card, CardHeader, Empty, Note, Segmented, Stat } from '../components/ui/primitives'
 import { useModel } from '../lib/data'
 import { fmt } from '../lib/format'
-import type { ModelBundle } from '../lib/types'
+import type { ModelBundle, RankCalibration } from '../lib/types'
 import { DataError } from './Errors'
 
 const PRED: Record<string, { label: string; color: string }> = {
@@ -44,6 +44,8 @@ export default function ModelHealth() {
           <Empty title="No backtest yet" />
         </Card>
       )}
+      {m.data.backtest?.horizon?.length ? <Horizon b={m.data.backtest} /> : null}
+      {m.data.team_strength && <TeamStrength ts={m.data.team_strength} />}
       {m.data.tails && <Tails t={m.data.tails} />}
       <Live live={m.data.live} />
     </div>
@@ -377,6 +379,131 @@ function Live({ live }: { live: ModelBundle['live'] }) {
           The archive started this season; the first pre-deadline projections are scored after that gameweek finishes.
         </Empty>
       )}
+    </Card>
+  )
+}
+
+function RankTable({ rows, caption }: { rows: RankCalibration[]; caption: string }) {
+  return (
+    <div>
+      <div className="mb-2 text-[12.5px] font-medium text-ink-2">{caption}</div>
+      <table className="w-full text-[13px]">
+        <thead>
+          <tr className="border-b border-line text-left text-[11.5px] text-muted">
+            <th className="py-2 font-medium">Prediction rank</th>
+            <th className="py-2 text-right font-medium">Predicted</th>
+            <th className="py-2 text-right font-medium">Actual</th>
+            <th className="py-2 text-right font-medium">Ratio</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.ranks} className="border-b border-line last:border-0">
+              <td className="py-2.5 font-mono text-[12px] text-ink-2">{r.ranks}</td>
+              <td className="num py-2.5 text-right text-ink-2">{r.predicted.toFixed(2)}</td>
+              <td className="num py-2.5 text-right text-ink">{r.actual.toFixed(2)}</td>
+              <td className="num py-2.5 text-right font-medium text-ink">{(r.actual / r.predicted).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function Horizon({ b }: { b: BacktestData }) {
+  const rows = b.horizon ?? []
+  return (
+    <Card>
+      <CardHeader
+        eyebrow={`${b.season.replace('-', '/')} · forecast from each gameweek without odds`}
+        title="Accuracy as the planner uses it"
+        hint="The live forecast rarely has odds for the weeks it plans: football-data lists only the next round, a few days ahead. This replays forecasts made at past deadlines with no odds at all, one to six gameweeks ahead, and scores them on what happened."
+      />
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[460px] text-[13px]">
+            <thead>
+              <tr className="border-b border-line text-left text-[11.5px] text-muted">
+                <th className="py-2 font-medium">Weeks ahead</th>
+                <th className="py-2 text-right font-medium">RMSE</th>
+                <th className="py-2 text-right font-medium">Bias</th>
+                <th className="py-2 text-right font-medium">Rank corr.</th>
+                <th className="py-2 text-right font-medium">Top 120: predicted → actual</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.ahead} className="border-b border-line last:border-0">
+                  <td className="py-2.5 font-mono text-[12px] text-ink-2">
+                    {r.ahead === 0 ? 'next GW' : `+${r.ahead}`}
+                  </td>
+                  <td className="num py-2.5 text-right text-ink">{r.rmse.toFixed(3)}</td>
+                  <td className="num py-2.5 text-right text-ink-2">{fmt.signed(r.bias, 3)}</td>
+                  <td className="num py-2.5 text-right text-ink">{r.spearman_within_pos.toFixed(3)}</td>
+                  <td className="num py-2.5 text-right text-ink-2">
+                    {r.top120_predicted.toFixed(2)} →{' '}
+                    <span className="font-medium text-ink">{r.top120_actual.toFixed(2)}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-2">
+          {b.top_calibration?.length ? <RankTable rows={b.top_calibration} caption="Next gameweek, with odds" /> : null}
+          {b.horizon_top_calibration?.length ? (
+            <RankTable rows={b.horizon_top_calibration} caption="One to six weeks ahead, no odds" />
+          ) : null}
+        </div>
+      </div>
+      <Note className="mt-4">
+        Ranks are each gameweek&apos;s ordering by predicted points: ranks 1–120 are the players a manager actually
+        picks from. A ratio above 1 means those players outscored their projections.
+      </Note>
+    </Card>
+  )
+}
+
+function TeamStrength({ ts }: { ts: NonNullable<ModelBundle['team_strength']> }) {
+  const rows = [
+    ts.baseline_scores && { label: 'Before tuning (goals and xG only, slow decay)', s: ts.baseline_scores },
+    ts.current_scores && { label: 'Now (also learns from past matches’ odds)', s: ts.current_scores },
+  ].filter(Boolean) as { label: string; s: { deviance: number; sd: number; sd_market: number } }[]
+  return (
+    <Card>
+      <CardHeader
+        eyebrow={`Point-in-time, ${ts.seasons.join(' and ')}, six weeks ahead`}
+        title="Team strength against the betting market"
+        hint="Each fixture's expected goals scored on the goals that followed (Poisson deviance, lower is better), next to the market's own opening odds for the same fixtures."
+      />
+      <table className="w-full text-[13px]">
+        <thead>
+          <tr className="border-b border-line text-left text-[11.5px] text-muted">
+            <th className="py-2 font-medium">Team-strength model</th>
+            <th className="py-2 text-right font-medium">Deviance</th>
+            <th className="py-2 text-right font-medium">Spread of λ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.label} className="border-b border-line">
+              <td className="py-2.5 text-ink-2">{r.label}</td>
+              <td className="num py-2.5 text-right font-medium text-ink">{r.s.deviance.toFixed(4)}</td>
+              <td className="num py-2.5 text-right text-ink-2">{r.s.sd.toFixed(2)}</td>
+            </tr>
+          ))}
+          <tr>
+            <td className="py-2.5 text-ink-2">Bookmakers&apos; opening odds</td>
+            <td className="num py-2.5 text-right font-medium text-ink">{ts.deviance_market.toFixed(4)}</td>
+            <td className="num py-2.5 text-right text-ink-2">{rows[0]?.s.sd_market.toFixed(2) ?? '–'}</td>
+          </tr>
+        </tbody>
+      </table>
+      <Note className="mt-3">
+        The market spreads teams further apart than the model; the extra spread reflects information the model does not
+        have (transfers, injuries, tactics), so stretching the model to match it makes its forecasts worse.
+      </Note>
     </Card>
   )
 }

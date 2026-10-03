@@ -140,6 +140,15 @@ def backtest(
             f"{m['subset']:<32} {m['predictor']:<14} RMSE {m['rmse']:.3f}  MAE {m['mae']:.3f}  "
             f"Spearman {m['spearman_within_pos']:.3f}"
         )
+    typer.echo("With odds, by prediction rank:")
+    for r in summ["top_calibration"]:
+        typer.echo(f"  ranks {r['ranks']:<8} predicted {r['predicted']:.2f}  actual {r['actual']:.2f}")
+    typer.echo("Without odds, by weeks ahead (as the live planner runs):")
+    for r in summ["horizon"]:
+        typer.echo(
+            f"  +{r['ahead']}  RMSE {r['rmse']:.3f}  bias {r['bias']:+.3f}  Spearman {r['spearman_within_pos']:.3f}  "
+            f"top-120 predicted {r['top120_predicted']:.2f} actual {r['top120_actual']:.2f}"
+        )
 
 
 @app.command()
@@ -196,7 +205,13 @@ def refresh(
             tail_calibration(s, s.season)
     except Exception:  # noqa: BLE001
         log.exception("hindcast failed")
-    if _age_days(s.outputs_dir / "backtest_summary.json") > backtest_max_age_days:
+    summary_path = s.outputs_dir / "backtest_summary.json"
+    # also re-run when the summary predates the weeks-ahead section
+    if _age_days(summary_path) > backtest_max_age_days or '"horizon"' not in (
+        summary_path.read_text() if summary_path.exists() else ""
+    ):
+        from midweek_merchant.backtest.team_strength import tune
+
         prev = previous_seasons(s.season, 1)[0]
         try:
             run_and_save(s, prev, gws=list(range(4, 39)))
@@ -204,6 +219,10 @@ def refresh(
             tail_calibration(s, prev)
         except Exception:  # noqa: BLE001
             log.exception("backtest/hindcast of %s failed", prev)
+        try:
+            tune(s, seasons=tuple(previous_seasons(s.season, 2)))
+        except Exception:  # noqa: BLE001
+            log.exception("team-strength tuning failed")
     fit_scale(s, (*previous_seasons(s.season, 1), s.season))
     if ceiling and s.team_id:  # after the tail calibration it relies on
         try:
@@ -455,6 +474,77 @@ def tails(
     if fit["gameweeks"]:
         show("pooled, raw", fit["raw"])
         show(f"pooled, k={fit['scale']}", fit["fitted"])
+
+
+@diagnose_app.command("team-strength")
+def team_strength(
+    seasons: str = typer.Option("2024-25,2025-26", help="Past seasons to score point-in-time"),
+    every: int = typer.Option(3, help="Fit at every Nth gameweek"),
+    decay: str = typer.Option("0.003,0.01,0.02,0.03", help="Grid: team_decay_per_day"),
+    ridge: str = typer.Option("2,4", help="Grid: ridge"),
+    market_weight: str = typer.Option("0,0.6,0.8", help="Grid: market_target_weight"),
+) -> None:
+    """Tune team-strength settings on goals scored, checked against the market's λ."""
+    from midweek_merchant.backtest.team_strength import tune
+
+    def floats(v: str) -> list[float]:
+        return [float(x) for x in v.split(",")]
+
+    grid = {
+        "team_decay_per_day": floats(decay),
+        "ridge": floats(ridge),
+        "market_target_weight": floats(market_weight),
+    }
+    out = tune(get_settings(), tuple(x.strip() for x in seasons.split(",")), every, grid)
+    cols = [
+        "team_decay_per_day",
+        "ridge",
+        "market_target_weight",
+        "team_spread",
+        "deviance",
+        "msle_vs_market",
+        "sd",
+    ]
+    typer.echo(pd_table(out["table"][:10], cols))
+    typer.echo(f"market's own deviance on the same fixtures: {out['deviance_market']:.4f}")
+    if out["current_scores"]:
+        typer.echo(f"current settings {out['current']}: {out['current_scores']}")
+    typer.echo(f"best: {out['best']} -> {out['best_scores']}")
+
+
+def pd_table(rows: list[dict], cols: list[str]) -> str:
+    import pandas as pd
+
+    return pd.DataFrame(rows)[cols].to_string(index=False)
+
+
+@diagnose_app.command("minutes")
+def minutes_cal(
+    fit_season: str = typer.Option("2025-26"),
+    check_season: str = typer.Option("2026-27"),
+    every: int = typer.Option(2, help="Use every Nth gameweek of the fit season"),
+) -> None:
+    """Fit start / 60-minute calibration curves on one season and check them on another."""
+    import json
+
+    from midweek_merchant.backtest.minutes_calibration import calibrate
+    from midweek_merchant.data.store import read_table
+
+    s = get_settings()
+    pm = read_table(s, "player_matches")
+    last = int(pm.loc[pm["season"] == check_season, "gw"].max())
+    out = calibrate(s, fit_season, list(range(4, 39, every)), check_season, list(range(2, last + 1)))
+    for name in ("start", "s60"):
+        typer.echo(
+            f"{name}: Brier {out[name + '_before']['brier']:.4f} -> {out[name + '_after']['brier']:.4f} "
+            f"on {check_season}"
+        )
+        for b, a in zip(out[name + "_before"]["table"], out[name + "_after"]["table"], strict=False):
+            typer.echo(
+                f"   {b['bin']:<12} before {b['predicted']:.3f}->{b['actual']:.3f}   "
+                f"after {a['bin']:<12} {a['predicted']:.3f}->{a['actual']:.3f}"
+            )
+    typer.echo("config.yaml forecast.minutes_calibration:\n" + json.dumps(out["curves"]))
 
 
 @diagnose_app.command("ft-rule")

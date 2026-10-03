@@ -229,9 +229,11 @@ def _trim_hindcast(h: dict[str, Any], current: bool) -> dict[str, Any]:
 def _model(settings: Settings) -> dict[str, Any]:
     from midweek_merchant.backtest.run import live_tracking
 
+    ts = _read_json(settings.outputs_dir / "team_strength_tuning.json")
     out: dict[str, Any] = {
         "backtest": _read_json(settings.outputs_dir / "backtest_summary.json"),
         "tails": _read_json(settings.outputs_dir / "tail_calibration.json"),
+        "team_strength": {k: v for k, v in ts.items() if k != "table"} if ts else None,
         "live": [],
     }
     try:

@@ -314,6 +314,28 @@ export interface ModelBundle {
     }[]
     calibration: { predicted: number; actual: number; n: number }[]
     top_picks: Record<string, number | string>[]
+    top_calibration?: RankCalibration[]
+    horizon?: {
+      ahead: number
+      n: number
+      rmse: number
+      bias: number
+      spearman_within_pos: number
+      top120_predicted: number
+      top120_actual: number
+    }[]
+    horizon_top_calibration?: RankCalibration[]
+  } | null
+  team_strength?: {
+    generated_at: string
+    seasons: string[]
+    best: Record<string, number>
+    best_scores: { deviance: number; msle_vs_market: number; sd: number; sd_market: number }
+    current: Record<string, number>
+    current_scores: { deviance: number; msle_vs_market: number; sd: number; sd_market: number } | null
+    baseline: Record<string, number>
+    baseline_scores: { deviance: number; msle_vs_market: number; sd: number; sd_market: number } | null
+    deviance_market: number
   } | null
   tails: {
     scale: number
@@ -324,6 +346,13 @@ export interface ModelBundle {
     fitted: TailStats
   } | null
   live: { gw: number; players: number; rmse: number; mae: number; predicted: number; actual: number }[]
+}
+
+export interface RankCalibration {
+  ranks: string
+  predicted: number
+  actual: number
+  n: number
 }
 
 export interface TailStats {

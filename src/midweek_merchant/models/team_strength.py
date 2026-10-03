@@ -5,12 +5,17 @@ A time-decayed, ridge-regularised Poisson model (the Dixon–Coles / Maher famil
     log λ_home = μ_L + h_L + att_home − def_away
     log λ_away = μ_L        + att_away − def_home
 
-fitted to a blend of goals and xG (a quasi-Poisson likelihood accepts non-integer
-targets). Championship (E1) matches share the team ratings, which rates promoted
-clubs through the teams that move between divisions. Market-implied goal
-expectancies for upcoming fixtures enter as weighted pseudo-observations so the
+fitted to a blend of goals, xG and the goal expectancies implied by each past match's
+opening odds (a quasi-Poisson likelihood accepts non-integer targets). Goals and xG are
+noisy single-match outcomes; the market's pre-match view is a low-noise estimate of the
+same rates, so leaning on it keeps the ratings as sharp as the market's without needing
+odds for the fixtures being forecast. Championship (E1) matches share the team ratings,
+which rates promoted clubs through the teams that move between divisions. Market-implied
+goal expectancies for upcoming fixtures enter as weighted pseudo-observations so the
 ratings are re-anchored to the betting market, then projected across the horizon.
-The Dixon–Coles low-score correction ρ is fitted afterwards on integer scores.
+``spread`` scales team differences when the fitted ratings are still flatter than the
+market (tuned by ``mm diagnose team-strength``). The Dixon–Coles low-score correction ρ is
+fitted afterwards on integer scores.
 """
 
 from __future__ import annotations
@@ -31,13 +36,15 @@ class TeamRatings:
     intercept: dict[str, float]
     home_adv: dict[str, float]
     rho: float
+    spread: float = 1.0
 
     def lambdas(self, home: str, away: str, league: str = "E0", neutral: bool = False) -> tuple[float, float]:
         mu = self.intercept.get(league, self.intercept["E0"])
         h = 0.0 if neutral else self.home_adv.get(league, self.home_adv["E0"])
         ah, dh = self.attack.get(home, 0.0), self.defence.get(home, 0.0)
         aa, da = self.attack.get(away, 0.0), self.defence.get(away, 0.0)
-        return float(np.exp(mu + h + ah - da)), float(np.exp(mu + aa - dh))
+        k = self.spread
+        return float(np.exp(mu + h + k * (ah - da))), float(np.exp(mu + k * (aa - dh)))
 
     def table(self) -> pd.DataFrame:
         teams = sorted(self.attack)
@@ -49,8 +56,8 @@ class TeamRatings:
                 "defence": [self.defence[t] for t in teams],
             }
         )
-        df["xg_for_vs_avg"] = np.exp(self.intercept["E0"] + df["attack"])
-        df["xg_against_vs_avg"] = np.exp(self.intercept["E0"] - df["defence"])
+        df["xg_for_vs_avg"] = np.exp(self.intercept["E0"] + self.spread * df["attack"])
+        df["xg_against_vs_avg"] = np.exp(self.intercept["E0"] - self.spread * df["defence"])
         del lh
         return df.sort_values("attack", ascending=False).reset_index(drop=True)
 
@@ -63,22 +70,30 @@ def fit_ratings(
     ridge: float = 4.0,
     pseudo: pd.DataFrame | None = None,
     pseudo_weight: float = 3.0,
+    market_weight: float = 0.0,
+    spread: float = 1.0,
 ) -> TeamRatings:
     """Fit ratings.
 
-    ``matches`` needs columns date, league, home, away, hg, ag, hxg, axg (xG may be NaN).
-    ``pseudo`` (optional) has home, away, lh, la: market-implied expectancies.
+    ``matches`` needs columns date, league, home, away, hg, ag, hxg, axg (xG may be NaN) and,
+    for ``market_weight`` > 0, hmk/amk: λ implied by each match's opening odds (NaN when
+    there were none; those matches use goals and xG alone).
+    ``pseudo`` (optional) has home, away, lh, la: market-implied expectancies for upcoming fixtures.
     """
     m = matches.dropna(subset=["hg", "ag"]).copy()
     m["date"] = pd.to_datetime(m["date"])
     days = (pd.Timestamp(ref_date).tz_localize(None) - m["date"]).dt.days.clip(lower=0).to_numpy()
     w = np.exp(-xi * days)
 
-    def target(g: pd.Series, xg: pd.Series) -> np.ndarray:
+    def target(g: pd.Series, xg: pd.Series, mk: str) -> np.ndarray:
         g, xg = g.to_numpy(float), xg.to_numpy(float)
-        return np.where(np.isfinite(xg), xg_weight * xg + (1 - xg_weight) * g, g)
+        y = np.where(np.isfinite(xg), xg_weight * xg + (1 - xg_weight) * g, g)
+        if market_weight > 0 and mk in m.columns:
+            mkt = m[mk].to_numpy(float)
+            y = np.where(np.isfinite(mkt), market_weight * mkt + (1 - market_weight) * y, y)
+        return y
 
-    y_home, y_away = target(m["hg"], m["hxg"]), target(m["ag"], m["axg"])
+    y_home, y_away = target(m["hg"], m["hxg"], "hmk"), target(m["ag"], m["axg"], "amk")
     homes, aways, leagues = list(m["home"]), list(m["away"]), list(m["league"])
     weights = [w, w]
     ys = [y_home, y_away]
@@ -138,7 +153,7 @@ def fit_ratings(
     dfn = dict(zip(teams, th[nt : 2 * nt], strict=True))
     mu = dict(zip(lgs, th[2 * nt : 2 * nt + nl], strict=True))
     hadv = dict(zip(lgs, th[2 * nt + nl :], strict=True))
-    ratings = TeamRatings(att, dfn, mu, hadv, rho=0.0)
+    ratings = TeamRatings(att, dfn, mu, hadv, rho=0.0, spread=spread)
     ratings.rho = fit_rho(ratings, m.assign(w=w))
     return ratings
 
