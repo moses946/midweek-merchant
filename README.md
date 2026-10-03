@@ -3,7 +3,7 @@
 An expected-points forecaster, squad optimiser and mini-league strategist for **Fantasy Premier League
 2026/27**, with a React dashboard on top.
 
-**Dashboard:** [moses946.github.io/midweek-merchant](https://moses946.github.io/midweek-merchant/)
+**Live dashboard:** [midweek-merchant.onrender.com](https://midweek-merchant.onrender.com)
 
 ![Overview of the dashboard](docs/screenshots/overview.png)
 
@@ -83,14 +83,14 @@ Without local outputs, run `uv run mm sync` first to download the published ones
 
 **Deploy (free)**
 
-1. **Dashboard on GitHub Pages.** In **Settings → Pages**, set the source to **GitHub Actions**. The `web`
-   workflow builds and deploys on every push to `main` that touches `web/`. The site reads fresh data from the
-   `data` branch at runtime, so it never needs rebuilding for new gameweeks. The build also bakes in a snapshot as
-   a fallback.
-2. **Live planner API (optional).** `render.yaml` is a [Render](https://render.com) blueprint for the FastAPI
-   service: **New → Blueprint**, pick this repository. Then add a repository variable `MM_API_URL` with the
-   service URL and re-run the `web` workflow. Without it, the dashboard shows the scheduled plan for the
-   configured team. Free instances sleep when idle, so the first request after a pause is slow.
+The live site runs on [Render](https://render.com)'s free tier as two services defined in `render.yaml`: the static
+dashboard (`midweek-merchant`) and the live-planner API (`midweek-merchant-api`). The dashboard build downloads the
+published data and bakes it in as a fallback; at runtime it reads the fresh bundle from the `data` branch. The API
+sleeps after 15 minutes without traffic, so the first plan after a pause takes about a minute.
+
+GitHub Pages works too: in **Settings → Pages**, set the source to **GitHub Actions**, and the `web` workflow deploys
+on every push to `main` that touches `web/`. To enable the live planner there, add a repository variable `MM_API_URL`
+with the API's URL and re-run the workflow.
 
 ## Automation (GitHub Actions)
 
