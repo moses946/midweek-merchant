@@ -170,7 +170,7 @@ function SquadTable({ plan, players, gws }: { plan: TeamPlan; players: Player[];
               <tr key={s.element} className="border-b border-line last:border-0 hover:bg-card-2/60">
                 <td className="px-5 py-2.5 sm:px-6">
                   <div className="flex items-center gap-2.5">
-                    <Jersey team={p?.team ?? ''} size={24} />
+                    <Jersey team={p?.team ?? ''} pos={s.position} size={30} />
                     <div>
                       <div className="font-medium text-ink">{s.name}</div>
                       <div className="text-[11.5px] text-muted">{p?.team}</div>

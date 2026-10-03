@@ -1,7 +1,8 @@
 import clsx from 'clsx'
 import { Info } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { teamColors } from '../../lib/teams'
+import { useState } from 'react'
+import { kitUrl, teamColors } from '../../lib/teams'
 
 export function Card({
   children,
@@ -183,11 +184,41 @@ export function Note({ children, className }: { children: ReactNode; className?:
   return <p className={clsx('text-[12.5px] leading-relaxed text-muted', className)}>{children}</p>
 }
 
-/** Generic two-tone football shirt; colours are the club's, the shape is ours. */
-export function Jersey({ team, size = 28, className }: { team: string; size?: number; className?: string }) {
+/** The club's kit (official FPL image), falling back to a two-tone shirt drawn in its colours. */
+export function Jersey({
+  team,
+  pos,
+  size = 28,
+  className,
+}: {
+  team: string
+  pos?: string
+  size?: number
+  className?: string
+}) {
+  const src = kitUrl(team, pos === 'GKP')
+  const [failed, setFailed] = useState<string | null>(null)
+  if (src && failed !== src) {
+    const w = Math.round(size * 0.76) // kit images are 220 × 290
+    return (
+      <img
+        src={src}
+        alt=""
+        aria-hidden
+        width={w}
+        height={size}
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        onError={() => setFailed(src)}
+        className={clsx('shrink-0 object-contain select-none', className)}
+        style={{ width: w, height: size }}
+      />
+    )
+  }
   const [body, trim] = teamColors(team)
   return (
-    <svg width={size} height={size} viewBox="0 0 32 32" className={className} aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 32 32" className={clsx('shrink-0', className)} aria-hidden>
       <path
         d="M11 3.5 6 5.6 1.8 11.4l4.4 3.3 2.1-2.2V29h15.4V12.5l2.1 2.2 4.4-3.3L26 5.6l-5-2.1c-.6 2-2.6 3.3-5 3.3s-4.4-1.3-5-3.3Z"
         fill={body}

@@ -42,7 +42,7 @@ export function PlayerDrawer({ player, meta, onClose }: { player: Player | null;
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <aside className="rise absolute inset-y-0 right-0 flex w-full max-w-[520px] flex-col overflow-y-auto border-l border-line bg-bg-elev">
         <div className="sticky top-0 z-10 flex items-start gap-4 border-b border-line bg-bg-elev/90 p-5 backdrop-blur-xl">
-          <Jersey team={p.team} size={52} />
+          <Jersey team={p.team} pos={p.pos} size={64} />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h2 className="truncate text-[20px] font-semibold tracking-tight text-ink">{p.name}</h2>

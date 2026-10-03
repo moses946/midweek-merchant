@@ -65,7 +65,8 @@ function PlayerToken({
         )}
         <Jersey
           team={p.team}
-          size={40}
+          pos={p.position}
+          size={54}
           className="drop-shadow-[0_6px_10px_rgba(0,0,0,0.35)] transition-transform group-hover:-translate-y-0.5"
         />
         {badge && <Armband label={badge} />}

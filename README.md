@@ -62,6 +62,8 @@ FPL API, match history, odds ──▶ Python pipeline (models, optimiser, simul
 | **Model health** | Backtest accuracy against baselines, calibration, tail calibration of the simulator and live tracking |
 | **How it works** | Architecture and methodology |
 
+Club kits are the official FPL images, loaded from the FPL site; they belong to the clubs and the Premier League.
+
 | ![My team](docs/screenshots/my-team.png) | ![Players](docs/screenshots/players.png) |
 |---|---|
 | ![Chips](docs/screenshots/chips.png) | ![Mini-league](docs/screenshots/mini-league.png) |
@@ -76,9 +78,7 @@ npm run data      # writes the JSON bundle from your local outputs (uv run mm ex
 npm run dev       # http://localhost:5173
 ```
 
-Without local outputs, run `uv run python -c "from midweek_merchant.config import get_settings;
-from midweek_merchant.publish import sync_from_remote; sync_from_remote(get_settings())"` first to download the
-published ones. To try the live planner, start the API with `uv run --extra api mm serve` and put
+Without local outputs, run `uv run mm sync` first to download the published ones. To try the live planner, start the API with `uv run --extra api mm serve` and put
 `VITE_API_URL=http://localhost:8000` in `web/.env.development.local`.
 
 **Deploy (free)**

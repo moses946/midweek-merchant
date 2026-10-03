@@ -95,6 +95,7 @@ def test_export_web(tmp_path: Path) -> None:
     assert meta["files"]["plan"] == "plan_7.json" and "league" not in meta["files"]
     assert meta["files"]["hindcast"] == {"2025-26": "hindcast_2025-26.json"}  # team replays are not seasons
     assert json.loads((dest / "meta.json").read_text())["files"] == meta["files"]
+    assert [(t["short"], t["code"]) for t in meta["teams"]] == [("ARS", 3), ("AVL", 7)]
 
     players = json.loads((dest / "players.json").read_text())
     assert [p["id"] for p in players] == [2, 1]  # sorted by next-GW xPts

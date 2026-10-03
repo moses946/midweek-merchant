@@ -188,6 +188,7 @@ def _teams(settings: Settings, teams: pd.DataFrame) -> list[dict[str, Any]]:
             {
                 "name": t.team,
                 "short": t.short_name,
+                "code": int(t.code),  # FPL team code: locates the official kit images
                 "attack": _r(r["attack"], 3) if r is not None else None,
                 "defence": _r(r["defence"], 3) if r is not None else None,
                 "xg_for": _r(r["xg_for_vs_avg"], 3) if r is not None else None,

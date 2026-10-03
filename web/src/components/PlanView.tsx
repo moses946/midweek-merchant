@@ -51,7 +51,7 @@ export function WeekTabs({
 function TransferRow({ p, dir }: { p: PlanWeek['transfers_in'][number]; dir: 'out' | 'in' }) {
   return (
     <div className="flex items-center gap-2.5">
-      <Jersey team={p.team} size={24} />
+      <Jersey team={p.team} pos={p.position} size={30} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1 text-[13px] font-medium text-ink">
           {dir === 'out' ? (

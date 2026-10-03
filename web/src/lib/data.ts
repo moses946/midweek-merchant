@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { registerTeams } from './teams'
 import type {
   BestSquads,
   CeilingReport,
@@ -40,7 +41,10 @@ function resolveSource(): Promise<{ base: string; meta: Meta }> {
       return { base: LOCAL_URL, meta: await fetchJSON<Meta>(LOCAL_URL, 'meta.json') }
     }
   }
-  const p = attempt()
+  const p = attempt().then((r) => {
+    registerTeams(r.meta.teams)
+    return r
+  })
   source = p.then((r) => r.base)
   p.catch(() => (source = null))
   return p

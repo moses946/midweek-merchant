@@ -33,7 +33,7 @@ jobs:
       - name: Bake a data snapshot from the published bundle
         run: |
           uv sync --frozen
-          uv run python -c "from midweek_merchant.config import get_settings; from midweek_merchant.publish import sync_from_remote; sync_from_remote(get_settings())"
+          uv run mm sync
           uv run mm export-web --out web/public/data
 
       - uses: actions/setup-node@v4
@@ -51,7 +51,6 @@ jobs:
         run: |
           npm ci
           npm run build
-          cp dist/index.html dist/404.html  # client-side routes on deep links
 
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -261,7 +261,7 @@ function Ownership({ rep }: { rep: LeagueReport }) {
               <tr key={r.element} className="border-b border-line last:border-0">
                 <td className="py-2">
                   <div className="flex items-center gap-2">
-                    <Jersey team={r.team} size={22} />
+                    <Jersey team={r.team} pos={r.position} size={26} />
                     <span className="font-medium text-ink">{r.name}</span>
                     <span className="text-[11.5px] text-muted">{r.team}</span>
                   </div>

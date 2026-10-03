@@ -229,7 +229,7 @@ function Explorer({ meta, players }: { meta: Meta; players: Player[] }) {
                 >
                   <td className="px-5 py-2 sm:px-6">
                     <div className="flex items-center gap-2.5">
-                      <Jersey team={p.team} size={24} />
+                      <Jersey team={p.team} pos={p.pos} size={30} />
                       <div className="min-w-0">
                         <div className="truncate font-medium text-ink">{p.name}</div>
                         <div className="text-[11.5px] text-muted">
@@ -287,7 +287,7 @@ function PriceList({ list, up, onOpen }: { list: Player[]; up: boolean; onOpen: 
             onClick={() => onOpen(p)}
             className="flex w-full items-center gap-3 rounded-xl px-2 py-1.5 text-left hover:bg-card-2"
           >
-            <Jersey team={p.team} size={22} />
+            <Jersey team={p.team} pos={p.pos} size={26} />
             <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink">{p.name}</span>
             <span className="num text-[12px] text-muted">{fmt.price(p.price)}</span>
             <span className="w-28">

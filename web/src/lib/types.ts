@@ -14,6 +14,7 @@ export interface EventRow {
 export interface TeamRow {
   name: string
   short: string
+  code?: number | null
   attack: number | null
   defence: number | null
   xg_for: number | null

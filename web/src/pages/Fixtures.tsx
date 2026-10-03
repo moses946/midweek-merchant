@@ -102,7 +102,7 @@ function Body({ meta, fx }: { meta: Meta; fx: FixturesBundle }) {
                 <tr key={team}>
                   <td className="px-2">
                     <div className="flex items-center gap-2">
-                      <Jersey team={team} size={20} />
+                      <Jersey team={team} size={24} />
                       <span className="font-semibold text-ink">{team}</span>
                     </div>
                   </td>

@@ -217,6 +217,16 @@ def refresh(
         typer.echo(f"bundle: {len(man['files'])} files -> {publish_dir}")
 
 
+@app.command()
+def sync() -> None:
+    """Download the latest published data bundle (data branch) into the data directory."""
+    from midweek_merchant.publish import sync_from_remote
+
+    s = get_settings()
+    man = sync_from_remote(s)
+    typer.echo(f"synced {len(man['files'])} files ({man['generated_at']}) -> {s.data_dir}")
+
+
 @app.command("export-web")
 def export_web(
     out: str = typer.Option("web/public/data", help="Directory for the React dashboard's JSON bundle"),
