@@ -174,6 +174,8 @@ def _simulate_side(
         + rules.yellow_pts * yc
         + rules.red_pts * rc
     )
+    if "pts_scale" in side:  # next-gameweek calibration (see xpts.calibrate_points)
+        total = total * side["pts_scale"].to_numpy(float)[None, :]
     cols = np.array([col[e] for e in side["element"]])
     np.add.at(out, (slice(None), cols), total.astype(np.float32))
     played_out[:, cols] |= on

@@ -94,3 +94,69 @@ def exact_values(
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         rows = list(ex.map(solve, jobs))
     return baseline, pd.DataFrame(rows, columns=["chip", "gw", "total_xpts", "gain", "status"])
+
+
+def best_chip_plan(
+    proj: pd.DataFrame,
+    state: TeamState,
+    rules: Rules,
+    opts: PlanOptions,
+    exact: pd.DataFrame,
+    max_workers: int = 4,
+    max_rounds: int = 3,
+) -> tuple[Plan, dict[int, str]] | None:
+    """The best plan that plays chips, found by coordinate search over chip schedules.
+
+    Letting the solver place chips freely is slow and stops at its time limit far from the
+    optimum. Here every schedule is solved with its chips forced and the rest banned (seconds
+    each). The search starts with no chips, then moves one chip at a time to its best week
+    (or drops it) while the others stay put, until nothing improves. Moving chips one at a time
+    catches pairs like a Bench Boost right after a Wildcard. Candidate weeks are those where the
+    chip alone beats keeping it (``exact``, from :func:`exact_values`). The objective already
+    charges each chip its hold value, so a schedule only wins when the chips are worth spending.
+    Returns None when no schedule beats the no-chip plan.
+    """
+    ok = exact.dropna(subset=["gain"])
+    weeks = {
+        c: sorted(int(g) for g in d.loc[d["gain"] > opts.chip_option_value.get(c, 0.0), "gw"])
+        for c, d in ok.groupby("chip")
+    }
+    weeks = {c: w for c, w in weeks.items() if w}
+    if not weeks:
+        return None
+    fast = replace(opts, time_limit=min(opts.time_limit, 40), mip_gap=max(opts.mip_gap, 0.01))
+    all_chips = {"wildcard", "freehit", "bboost", "3xc"}
+    cache: dict[tuple, Plan] = {}
+
+    def solve(sched: dict[int, str]) -> Plan:
+        key = tuple(sorted(sched.items()))
+        if key not in cache:
+            o = replace(
+                fast,
+                allow_chips=bool(sched),
+                forced_chips=dict(sched),
+                banned_chips=all_chips - set(sched.values()),
+            )
+            cache[key] = plan_transfers(proj, state, rules, o)
+        return cache[key]
+
+    def score(p: Plan) -> float:
+        return p.objective if p.weeks else float("-inf")
+
+    current: dict[int, str] = {}
+    best = solve(current)
+    # most valuable chips first
+    order = sorted(weeks, key=lambda c: -float(ok.loc[ok["chip"] == c, "gain"].max()))
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        for _ in range(max_rounds):
+            moved = False
+            for chip in order:
+                others = {g: c for g, c in current.items() if c != chip}
+                options = [others] + [{**others, g: chip} for g in weeks[chip] if g not in others]
+                plans = list(ex.map(solve, options))
+                i = max(range(len(plans)), key=lambda k: score(plans[k]))
+                if score(plans[i]) > score(best) + 1e-6:
+                    current, best, moved = options[i], plans[i], True
+            if not moved:
+                break
+    return (best, current) if current else None

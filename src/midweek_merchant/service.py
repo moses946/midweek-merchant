@@ -303,6 +303,30 @@ def ceiling_report(
     }
 
 
+def chip_plan(
+    settings: Settings, state: TeamState, report: dict[str, Any], horizon: int = 6
+) -> dict[str, Any] | None:
+    """The best transfer plan that also plays chips, built on a :func:`chip_report`."""
+    from midweek_merchant.optimize import chips as ch
+
+    exact = pd.DataFrame(report.get("exact") or [], columns=["chip", "gw", "total_xpts", "gain", "status"])
+    if exact.empty:
+        return None
+    proj = load_projections(settings)
+    opts = PlanOptions.from_config(settings.optimizer, horizon=horizon, last_gw_chip=last_chip(state))
+    found = ch.best_chip_plan(proj, state, load_rules(settings), opts, exact)
+    if found is None:
+        return None
+    plan, schedule = found
+    return {
+        "schedule": {str(g): c for g, c in sorted(schedule.items())},
+        "status": plan.status,
+        "objective": plan.objective,
+        "total_xpts": plan.total_xpts,
+        "weeks": plan_table(plan, proj),
+    }
+
+
 def chip_report(settings: Settings, state: TeamState, horizon: int = 6, exact: bool = True) -> dict[str, Any]:
     from midweek_merchant.optimize import chips as ch
 

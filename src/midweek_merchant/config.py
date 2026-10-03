@@ -16,6 +16,14 @@ class ForecastConfig(BaseModel):
     horizon: int = 8
     team_decay_per_day: float = 0.003
     xg_weight: float = 0.6
+    market_target_weight: float = 0.0  # weight of past matches' opening-odds λ in the rating targets
+    ridge: float = 4.0  # L2 penalty on team attack/defence ratings
+    team_spread: float = 1.0  # scale on team rating differences for model-only λ (fitted vs the market)
+    # monotone maps (knots [[predicted, actual], ...]) for the start and 60-minute probabilities,
+    # fitted by `mm diagnose minutes`; empty = no calibration
+    minutes_calibration: dict[str, list[list[float]]] = Field(default_factory=dict)
+    attrition_per_gw: float = 0.0
+    next_gw_points_calibration: list[list[float]] = Field(default_factory=list)
     market_weight_next: float = 0.9
     market_weight_decay: float = 0.6
     player_half_life_matches: float = 12

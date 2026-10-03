@@ -1,13 +1,22 @@
 # Midweek Merchant
 
 An expected-points forecaster, squad optimiser and mini-league strategist for **Fantasy Premier League
-2026/27**.
+2026/27**, with a React dashboard on top.
+
+**Live dashboard:** [midweek-merchant.onrender.com](https://midweek-merchant.onrender.com)
+
+![Overview of the dashboard](docs/screenshots/overview.png)
 
 It ingests FPL, historical and betting-market data and projects every player's expected points (xPts) for
 the next eight gameweeks. From those projections it builds the best squad for each gameweek. Given your
 team ID, it rebuilds your squad, selling prices, bank, free transfers and remaining chips, then plans
 transfers, captaincy and chip timing. Finally it ranks plans by your **chance of winning your mini-league**,
 not just by points.
+
+- **Validated blind:** across 37 gameweeks of 2025/26, the model's XI, picked before each deadline, averaged
+  62.7 points against 54.9 for FPL's own prediction and outscored it in 70% of gameweeks.
+- **Accurate per player:** RMSE 1.91 vs 2.12 for FPL's ep over 27,000 player-gameweeks, with calibration on the diagonal.
+- **Automated:** a GitHub Actions pipeline refreshes data, forecasts, plans and hindcasts every six hours.
 
 ## Quick start
 
@@ -20,24 +29,68 @@ uv run mm plan --team-id 1234567         # your transfer/captain plan
 uv run mm league --league-id 98765 --team-id 1234567
 uv run mm ceiling --team-id 1234567      # plans ranked by the chance of a 100+ week in the next 4 GWs
 uv run mm hindcast --team-id 1234567 --gw 5   # your own squad at a past deadline, picked blind
-uv run streamlit run app/streamlit_app.py
 ```
 
 Your team ID is the number in your FPL points-page URL (`/entry/<ID>/event/...`). Your league ID is the
 number in the league URL (`/leagues/<ID>/standings/c`). No FPL login is needed.
 
-## Dashboard
+## Dashboard (React)
 
-| Page | What it does |
+The dashboard in `web/` is a React 19 + TypeScript app (Vite, Tailwind CSS v4, Recharts, TanStack Query). Python
+does all the data and modelling:
+
+```
+FPL API, match history, odds ──▶ Python pipeline (models, optimiser, simulations)
+                                   │  every 6 h on GitHub Actions
+                                   ▼
+                        data branch: web/*.json  ──▶  React dashboard (GitHub Pages)
+                                                            │ optional
+                                                            ▼
+                                        FastAPI live planner (src/midweek_merchant/api.py)
+```
+
+| Page | What it shows |
 |---|---|
-| **Home** | Deadline countdown, data freshness, this week's headline plan, top projections |
-| **My team** | Load your team by ID, add transfers already made this week, set horizon/hits/locks/bans/availability overrides, get the plan with a pitch view and alternatives |
-| **Projections** | Filterable xPts table per GW, fixture ticker (expected goals / clean-sheet chance), official price-change watch |
-| **Best squad** | Best possible squad per GW (Free Hit view) and the best wildcard draft for the horizon |
-| **Chips** | Blank/double GW calendar and the value of each chip in each GW: quick single-week values plus exact re-solves including knock-on effects. **Chase a big week** ranks chip plans by the chance of a 100+ (or any target) gameweek |
-| **Mini-league** | Rivals' squads, league effective ownership (shields/swords), candidate plans ranked by P(win league), captaincy and head-to-head odds |
-| **Hindcast** | Pick a played gameweek's XI blind (pre-deadline data only), then compare it with reality, FPL's own pick, form and the best XI possible in hindsight. **Your team, picked blind** replays your own squad, bank and free transfers at that deadline |
-| **Model health** | Backtest accuracy vs baselines, calibration, and live tracking of this season's projections |
+| **Overview** | This week's recommended move, plan horizon, title odds, chance of a 100+ week, captaincy shortlist, best players and fixture runs |
+| **My team** | The squad on a pitch, the week-by-week transfer plan, chips held and the squad with selling prices. With the API configured, **plan any FPL team** live |
+| **Players** | Sortable, filterable xPts for every player and gameweek, a drawer with each player's points breakdown, and the price-change watch |
+| **Fixtures** | Fixture ticker coloured by expected goals or clean-sheet chance, and the team-strength map |
+| **Best XI** | Best possible squad per gameweek (Free Hit view) against your plan, and the best wildcard draft |
+| **Chips** | Gain from every chip in every gameweek, best-week verdicts, the **chase a big week** planner and the blank/double calendar |
+| **Mini-league** | Race stance, standings with title odds, options ranked by chance of winning, effective ownership, captaincy, head to head and rivals' chips |
+| **Track record** | Blind XIs scored on reality against FPL's prediction, form and the average manager, with any gameweek on the pitch |
+| **Model health** | Backtest accuracy against baselines, calibration, tail calibration of the simulator and live tracking |
+| **How it works** | Architecture and methodology |
+
+Club kits are the official FPL images, loaded from the FPL site; they belong to the clubs and the Premier League.
+
+| ![My team](docs/screenshots/my-team.png) | ![Players](docs/screenshots/players.png) |
+|---|---|
+| ![Chips](docs/screenshots/chips.png) | ![Mini-league](docs/screenshots/mini-league.png) |
+| ![Track record](docs/screenshots/track-record.png) | ![Model health, light theme](docs/screenshots/model-health.png) |
+
+**Run it locally**
+
+```bash
+cd web
+npm ci
+npm run data      # writes the JSON bundle from your local outputs (uv run mm export-web)
+npm run dev       # http://localhost:5173
+```
+
+Without local outputs, run `uv run mm sync` first to download the published ones. To try the live planner, start the API with `uv run --extra api mm serve` and put
+`VITE_API_URL=http://localhost:8000` in `web/.env.development.local`.
+
+**Deploy (free)**
+
+The live site runs on [Render](https://render.com)'s free tier as two services defined in `render.yaml`: the static
+dashboard (`midweek-merchant`) and the live-planner API (`midweek-merchant-api`). The dashboard build downloads the
+published data and bakes it in as a fallback; at runtime it reads the fresh bundle from the `data` branch. The API
+sleeps after 15 minutes without traffic, so the first plan after a pause takes about a minute.
+
+GitHub Pages works too: in **Settings → Pages**, set the source to **GitHub Actions**, and the `web` workflow deploys
+on every push to `main` that touches `web/`. To enable the live planner there, add a repository variable `MM_API_URL`
+with the API's URL and re-run the workflow.
 
 ## Automation (GitHub Actions)
 
@@ -48,7 +101,9 @@ number in the league URL (`/leagues/<ID>/standings/c`). No FPL login is needed.
 3. Optimises the best squads.
 4. Plans your team and chips, and analyses your league, if configured.
 5. Re-runs the backtest weekly.
-6. Force-pushes a single-commit **`data` branch** with the results. The repo does not grow, but the point-in-time archive of player news and prices accumulates inside it.
+6. Force-pushes a single-commit **`data` branch** with the results, including the dashboard's JSON bundle
+   under `web/`. The repo does not grow, but the point-in-time archive of player news and prices accumulates
+   inside it.
 
 To configure it, go to **Settings → Secrets and variables → Actions**:
 
@@ -57,21 +112,18 @@ To configure it, go to **Settings → Secrets and variables → Actions**:
 | `ODDS_API_KEY` | secret (optional) | [the-odds-api.com](https://the-odds-api.com) free key for fresh pre-deadline odds (about 2 credits per call, gated to 12-hourly and 3-hourly near deadlines) |
 | `FPL_TEAM_ID` | variable (optional) | Precompute your plan and chip report |
 | `FPL_LEAGUE_ID` | variable (optional) | Precompute your league analysis |
+| `MM_API_URL` | variable (optional) | URL of the live-planner API, baked into the dashboard build |
 
-`ci.yml` runs ruff and the tests on pushes and PRs.
+`ci.yml` runs ruff and the Python tests, then formats, lints, type-checks and builds the dashboard. `web.yml`
+deploys the dashboard.
 
-**Hosting the dashboard (Streamlit Community Cloud, free).** The app reads the `data` branch that the
-scheduled workflow publishes, so it needs no database or secrets.
+## Analyst console (Streamlit)
 
-1. Sign in at [share.streamlit.io](https://share.streamlit.io) with GitHub.
-2. Create app → repository `moses946/midweek-merchant`, branch `main`, main file `app/streamlit_app.py` → Deploy
-   ([direct link](https://share.streamlit.io/deploy?repository=moses946/midweek-merchant&branch=main&mainModule=app/streamlit_app.py)).
-
-`requirements.txt` installs the package. With no local data, the app downloads the latest bundle from the `data`
-branch (refreshed every 6 hours). Interactive planning, chips and league analysis also run live in the app, more
-slowly than locally on the free tier. Your team and league IDs come from `config.yaml`. To use different ones, add
-root-level `FPL_TEAM_ID` / `FPL_LEAGUE_ID` entries to the app's Streamlit secrets; Streamlit exposes root-level
-secrets as environment variables.
+`uv run streamlit run app/streamlit_app.py` opens the original Streamlit app. It runs the models in-process,
+so it can add transfers you have already made this week, lock or ban players, override availability and
+compare alternative plans. Like the React dashboard, it downloads the published bundle when there is no local
+data. It can be hosted on [Streamlit Community Cloud](https://share.streamlit.io) (repository
+`moses946/midweek-merchant`, main file `app/streamlit_app.py`); `requirements.txt` installs the package.
 
 ## How it works
 
@@ -79,15 +131,28 @@ secrets as environment variables.
 
 - **Team strength**
   - Fits a time-decayed, ridge-regularised Poisson model (Dixon–Coles family, with low-score correction ρ)
-    to a blend of goals and xG.
+    to a blend of goals, xG and the goal expectancy implied by each past match's opening odds.
+  - The market target matters most. Without it the ratings were far flatter than the bookmakers', which
+    understated favourites, and with them good teams' attackers and clean sheets.
+  - `uv run mm diagnose team-strength` tunes decay, ridge and the market weight point-in-time over 2024-25 and
+    2025-26, scoring forecasts for the next six gameweeks against goals scored. Poisson deviance improved from
+    1.082 to 1.062; the bookmakers' own opening odds score 1.061 on the same fixtures. That means the
+    ratings now match the market even for fixtures with no odds yet.
   - Championship matches are included so promoted clubs get ratings.
-  - Bookmaker odds (1X2 and over/under, with the margin removed) are converted to goal expectancies. These are
-    added to the fit as pseudo-observations and blended into the nearest fixtures.
+  - Bookmaker odds (1X2 and over/under, with the margin removed) are converted to goal expectancies. For
+    upcoming fixtures that have odds, they are added to the fit as pseudo-observations and blended into the
+    nearest fixtures.
 - **Minutes**
   - Uses recency-weighted rates of starting, lasting 60 minutes and coming off the bench.
   - Runs of three or more zero-minute games are treated as absences, not rotation.
   - FPL status, chance of playing, "Expected back <date>" news and loan restrictions set availability per
     fixture.
+  - Raw start and 60-minute rates are mapped through monotone curves fitted on 2025-26 backtests
+    (`uv run mm diagnose minutes`). The recency-weighted rates were too cautious for regular starters: a
+    0.83 chance of 60+ minutes came true 90% of the time. Checked on 2026-27, the Brier score for 60+
+    minutes fell from 0.1062 to 0.1052.
+  - Each week further ahead, availability falls 1.5% for injuries, bans and drops not yet known. Without
+    this, forecasts 2–6 weeks out over-predicted total points by 4–10%.
   - You can override availability manually in the UI.
 - **Player rates**
   - Each player's share of team xG and xA is estimated with empirical-Bayes shrinkage towards price/position
@@ -98,6 +163,12 @@ secrets as environment variables.
     (the bonus points system changed this season).
 - **Points**: the 2026/27 scoring rules give analytic xPts per fixture, summed across double gameweeks. The rules
   engine reproduces every line of FPL's official points breakdown in the test data.
+  - Forecasts for the coming gameweek under-rated the best players: actual points rose 1.12 per predicted point
+    in 2025-26.
+  - So the next gameweek's xPts go through a monotone curve fitted on every 2025-26 gameweek
+    (`uv run mm diagnose points`). On 2026-27 it cut RMSE from 2.154 to 2.149 and raised the top players'
+    projections by 3–4%.
+  - Later weeks are left alone, because there unforeseen absences push the other way.
 - **Simulation**: a correlated Monte Carlo draws scorelines and allocates goals and assists to the players on the
   pitch, so teammates and opponents are properly correlated. The mini-league layer uses it.
 
@@ -113,6 +184,12 @@ secrets as environment variables.
 - **Objective**: expected points with weekly decay, plus bench weights, a terminal value for banked free
   transfers, and an option value for unused chips.
 - **Extras**: alternative plans (via no-good cuts) and noisy re-solves for sensitivity.
+- **Plan with chips**: the headline plan holds every chip, and the Chips page tests each chip in each week.
+  - The scheduled run also builds the best plan that plays chips. Each chip schedule is solved with its chips
+    forced, in seconds; the search moves one chip at a time and keeps the best objective, after charging each
+    chip its hold value.
+  - Letting the solver place all chips at once ran into its time limit with a worse plan.
+  - My team switches between the two plans.
 
 ### Mini-league strategy
 
@@ -128,7 +205,7 @@ secrets as environment variables.
 
 ### Hindcast: blind XI picks scored on reality
 
-`uv run mm hindcast --gw 5` (or `--season 2025-26 --gws 2-38`, or the **Hindcast** page) takes a gameweek that
+`uv run mm hindcast --gw 5` (or `--season 2025-26 --gws 2-38`; results on the **Track record** page) takes a gameweek that
 has already been played and has the model pick its best XI, captain and bench. It uses only what was known before
 that deadline:
 
@@ -193,7 +270,27 @@ The test is rolling-origin with the same point-in-time inputs.
 | Recent form (last 4) | 2.35 | 3.21 | 0.66 | 3.2 |
 
 Calibration is close to the diagonal across deciles. The scheduled job refreshes the backtest and hindcasts weekly
-(this season's hindcast on every run). The Model health and Hindcast pages show them.
+(this season's hindcast on every run). The dashboard's Track record and Model health pages show them.
+
+### Without odds, weeks ahead (how the live planner runs)
+
+The table above gives the model each gameweek's opening odds. Live, odds usually exist only for the next round,
+or none at all, while the planner looks six weeks ahead. So the backtest also forecasts from 15 origin gameweeks
+of 2025-26 up to five weeks ahead, with no odds:
+
+| Weeks ahead | RMSE | Bias (pts/player) | Rank corr. within position | Top-120: predicted | Top-120: actual |
+|---|---|---|---|---|---|
+| 0 | 1.90 | −0.00 | 0.74 | 3.60 | 3.84 |
+| 1 | 2.01 | +0.04 | 0.69 | 3.47 | 3.43 |
+| 2 | 2.02 | +0.04 | 0.67 | 3.48 | 3.39 |
+| 3 | 2.07 | +0.05 | 0.65 | 3.43 | 3.35 |
+| 4 | 2.07 | +0.04 | 0.64 | 3.42 | 3.25 |
+| 5 | 2.07 | +0.05 | 0.62 | 3.31 | 3.13 |
+
+- The next gameweek is as accurate without odds as with them, now that the team ratings track the market.
+- The best players are under-predicted for the next week, by about 6% for the top 120.
+- Further out, projections run a few percent high, even after the 1.5%-a-week absence allowance.
+- Read a projected total for weeks 3–6 as a slightly optimistic mean, not as a floor.
 
 ### Verified rule details
 
@@ -246,5 +343,9 @@ Requests are throttled and cached. Please keep them that way.
 ```bash
 uv run pytest          # rules, optimiser property tests, simulation/league tests
 uv run ruff check src tests app && uv run ruff format src tests app
-uv run mm backtest     # rolling backtest on 2025-26
+uv run mm backtest     # rolling backtest on 2025-26 (with odds, and without odds 0-5 weeks ahead)
+uv run mm diagnose team-strength   # tune team ratings against goals; compare with the market
+uv run mm diagnose minutes         # fit the minutes calibration curves on 2025-26, check on 2026-27
+uv run mm diagnose points          # fit the next-gameweek xPts calibration on 2025-26, check on 2026-27
+cd web && npm run format && npm run lint && npm run build   # dashboard
 ```

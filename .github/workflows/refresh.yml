@@ -46,7 +46,7 @@ jobs:
           key: raw-${{ github.run_id }}
           restore-keys: raw-
 
-      - name: Restore previously published archive (snapshots, per-GW projections, backtest, hindcasts)
+      - name: Restore previously published archive (snapshots, per-GW projections, backtest, hindcasts, tuning)
         run: |
           if git fetch --depth=1 origin data 2>/dev/null; then
             mkdir -p /tmp/published && git --work-tree=/tmp/published checkout FETCH_HEAD -- .
@@ -54,7 +54,7 @@ jobs:
             mkdir -p data/raw data/outputs
             [ -d /tmp/published/raw/snapshots ] && cp -r /tmp/published/raw/snapshots data/raw/
             [ -d /tmp/published/outputs/history ] && cp -r /tmp/published/outputs/history data/outputs/
-            cp /tmp/published/outputs/backtest_* /tmp/published/outputs/hindcast_* /tmp/published/outputs/tail_calibration* data/outputs/ 2>/dev/null || true
+            cp /tmp/published/outputs/backtest_* /tmp/published/outputs/hindcast_* /tmp/published/outputs/tail_calibration* /tmp/published/outputs/team_strength_tuning* data/outputs/ 2>/dev/null || true
           fi
 
       - name: Refresh pipeline

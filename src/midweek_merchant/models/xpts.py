@@ -9,6 +9,7 @@ from scipy.stats import nbinom, poisson
 from midweek_merchant.models.player_rates import RateParams
 from midweek_merchant.rules import DEFCON_THRESHOLD, Rules
 
+PTS_COLS = ["x_app", "x_goals", "x_assists", "x_cs", "x_gc", "x_saves", "x_dc", "x_bonus", "x_cards"]
 STATES = (("s60", "m_start60", 2), ("slt", "m_start_lt", 1), ("sub", "m_sub", 1))
 
 
@@ -124,8 +125,43 @@ def fixture_xpts(df: pd.DataFrame, params: RateParams, rules: Rules) -> pd.DataF
         df[
             f"x_{k}" if k in ("app", "goals", "assists", "cs", "gc", "saves", "dc", "bonus", "cards") else k
         ] = v
-    pts_cols = ["x_app", "x_goals", "x_assists", "x_cs", "x_gc", "x_saves", "x_dc", "x_bonus", "x_cards"]
-    df["xpts"] = df[pts_cols].sum(axis=1)
+    df["xpts"] = df[PTS_COLS].sum(axis=1)
+    return df
+
+
+def points_curve(xpts: np.ndarray, knots: list[list[float]] | None) -> np.ndarray:
+    """Piecewise-linear calibration through ``knots`` ([[predicted, calibrated], ...]).
+
+    Identity without knots; beyond the last knot the curve keeps that knot's ratio.
+    """
+    x = np.asarray(xpts, dtype=float)
+    if not knots:
+        return x
+    kx, ky = np.asarray(knots, dtype=float).T
+    return np.where(x > kx[-1], x * ky[-1] / kx[-1], np.interp(x, kx, ky))
+
+
+def calibrate_points(
+    df: pd.DataFrame, knots: list[list[float]] | None, rows: pd.Series | np.ndarray | None = None
+) -> pd.DataFrame:
+    """Map fixture xPts through :func:`points_curve`, for ``rows`` only (default: all).
+
+    The points components are scaled by the same factor, so they still add up to xPts. The
+    factor is kept as ``pts_scale`` (the simulator applies it too) and the uncalibrated total
+    as ``xpts_raw``.
+    """
+    df = df.copy()
+    raw = df["xpts"].to_numpy(float)
+    df["xpts_raw"] = raw
+    scale = np.ones_like(raw)
+    sel = raw > 1e-9
+    if rows is not None:
+        sel &= np.asarray(rows, dtype=bool)
+    if knots and sel.any():
+        scale[sel] = np.clip(points_curve(raw[sel], knots) / raw[sel], 0.0, 2.0)
+    df["pts_scale"] = scale
+    for c in [*PTS_COLS, "xpts"]:
+        df[c] = df[c] * scale
     return df
 
 
@@ -137,6 +173,7 @@ def gameweek_xpts(
     fx["opp_label"] = fx["opp"].map(teams_short).fillna(fx["opp"]) + np.where(fx["is_home"], "(H)", "(A)")
     agg_cols = [
         "xpts",
+        "xpts_raw",
         "xmins",
         "p_start",
         "p_play",

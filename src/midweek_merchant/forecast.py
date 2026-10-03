@@ -12,13 +12,14 @@ import pandas as pd
 import yaml
 
 from midweek_merchant.config import ROOT, Settings
+from midweek_merchant.data import odds
 from midweek_merchant.data.ingest import previous_seasons
 from midweek_merchant.data.store import read_table, write_output
 from midweek_merchant.features.panel import build_panel
 from midweek_merchant.models import minutes as minutes_model
 from midweek_merchant.models.player_rates import RateParams, fit_rates
 from midweek_merchant.models.team_strength import fit_ratings, project_fixtures, team_fixture_rows
-from midweek_merchant.models.xpts import fixture_xpts, gameweek_xpts
+from midweek_merchant.models.xpts import calibrate_points, fixture_xpts, gameweek_xpts
 from midweek_merchant.rules import Rules, rules_from_bootstrap
 
 log = logging.getLogger(__name__)
@@ -73,9 +74,9 @@ def run_forecast(
     gws = list(range(next_gw, min(38, next_gw + horizon - 1) + 1))
     now = datetime.now(UTC)
     upcoming = fixtures[fixtures["gw"].isin(gws) & ~fixtures["started"]].copy()
-    tm = read_table(settings, "team_matches")
-    e1 = read_table(settings, "fd_e1")
-    cols = ["date", "league", "home", "away", "hg", "ag", "hxg", "axg"]
+    tm = odds.ensure_market_lambdas(read_table(settings, "team_matches"), settings)
+    e1 = odds.ensure_market_lambdas(read_table(settings, "fd_e1"), settings)
+    cols = ["date", "league", "home", "away", "hg", "ag", "hxg", "axg", "hmk", "amk"]
     hist = pd.concat(
         [tm.loc[tm["finished"].fillna(False).astype(bool), cols], e1.loc[e1["finished"].astype(bool), cols]],
         ignore_index=True,
@@ -146,7 +147,14 @@ def forecast_core(
         else None
     )
     ratings = fit_ratings(
-        team_hist, pd.Timestamp(now.date()), xi=cfg.team_decay_per_day, xg_weight=cfg.xg_weight, pseudo=pseudo
+        team_hist,
+        pd.Timestamp(now.date()),
+        xi=cfg.team_decay_per_day,
+        xg_weight=cfg.xg_weight,
+        ridge=cfg.ridge,
+        pseudo=pseudo,
+        market_weight=cfg.market_target_weight,
+        spread=cfg.team_spread,
     )
     proj = project_fixtures(
         ratings, upcoming, market, next_gw, cfg.market_weight_next, cfg.market_weight_decay
@@ -162,10 +170,18 @@ def forecast_core(
         tf, on="team", how="inner"
     )
     rows = minutes_model.fixture_minutes(
-        profiles.drop(columns=["code"]), players, rows, next_gw, now, minutes_overrides or {}
+        profiles.drop(columns=["code"]),
+        players,
+        rows,
+        next_gw,
+        now,
+        minutes_overrides or {},
+        calibration=cfg.minutes_calibration,
+        attrition=cfg.attrition_per_gw,
     )
     rows = rows.merge(rates.drop(columns=["code"]), on="element", how="left")
     fx_x = fixture_xpts(rows, params, rules)
+    fx_x = calibrate_points(fx_x, cfg.next_gw_points_calibration, fx_x["gw"].to_numpy() == next_gw)
     gw_x = gameweek_xpts(fx_x, players["element"], gws, short)
     info = players[[c for c in INFO_COLS if c in players.columns]]
     gw_x = info.merge(gw_x, on="element", how="right")
@@ -229,6 +245,8 @@ def save_forecast(settings: Settings, fc: Forecast) -> None:
         "yc90",
         "rc90",
         "xpts",
+        "xpts_raw",
+        "pts_scale",
         "position",
         "rho",
     ]

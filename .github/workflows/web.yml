@@ -1,0 +1,67 @@
+name: web
+
+# Builds the React dashboard and deploys it to GitHub Pages. The site reads fresh data from
+# the `data` branch at runtime; the build also bakes in a snapshot as a fallback.
+# One-time setup: Settings -> Pages -> Build and deployment -> Source: GitHub Actions.
+# Optional repository variable MM_API_URL enables the live planner (see README).
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", "src/midweek_merchant/web_export.py", ".github/workflows/web.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Bake a data snapshot from the published bundle
+        run: |
+          uv sync --frozen
+          uv run mm sync
+          uv run mm export-web --out web/public/data
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build
+        working-directory: web
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          VITE_API_URL: ${{ vars.MM_API_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

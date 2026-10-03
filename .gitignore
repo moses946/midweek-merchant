@@ -6,3 +6,8 @@ __pycache__/
 /data/
 override.yaml
 .streamlit/secrets.toml
+
+# React dashboard
+web/node_modules/
+web/dist/
+web/public/data/
