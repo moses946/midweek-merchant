@@ -120,12 +120,14 @@ function Explorer({ meta, players }: { meta: Meta; players: Player[] }) {
         title="Player projections"
         description={`Expected FPL points for every player in every gameweek of the horizon, built up from minutes, goals, assists, clean sheets, saves, defensive contributions and bonus. Click a player for the breakdown.`}
         actions={
-          <button
-            onClick={downloadCsv}
-            className="inline-flex items-center gap-2 rounded-xl bg-card px-3.5 py-2 text-[13px] font-medium text-ink ring-1 ring-line hover:bg-card-2"
-          >
-            <Download size={15} /> CSV
-          </button>
+          !import.meta.env.VITE_EMBED && (
+            <button
+              onClick={downloadCsv}
+              className="inline-flex items-center gap-2 rounded-xl bg-card px-3.5 py-2 text-[13px] font-medium text-ink ring-1 ring-line hover:bg-card-2"
+            >
+              <Download size={15} /> CSV
+            </button>
+          )
         }
       />
 

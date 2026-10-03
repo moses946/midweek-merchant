@@ -231,7 +231,7 @@ export function Shell() {
       )}
 
       <div className="lg:pl-[264px]">
-        <header className="sticky top-0 z-20 border-b border-line bg-bg/80 backdrop-blur-xl">
+        <header className="sticky top-[env(safe-area-inset-top,0px)] z-20 border-b border-line bg-bg/80 backdrop-blur-xl">
           <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-3 px-4 sm:px-6 lg:px-8">
             <button
               className="grid size-9 place-items-center rounded-xl bg-card text-ink-2 ring-1 ring-line lg:hidden"
