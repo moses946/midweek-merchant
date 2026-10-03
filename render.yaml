@@ -1,0 +1,18 @@
+# Render blueprint for the live-planner API (optional; the dashboard works without it).
+# New -> Blueprint -> pick this repository. Then set the repository variable MM_API_URL to the
+# service URL (e.g. https://midweek-merchant-api.onrender.com) and re-run the `web` workflow.
+services:
+  - type: web
+    name: midweek-merchant-api
+    runtime: python
+    plan: free
+    buildCommand: pip install uv && uv sync --frozen --extra api
+    startCommand: uv run --frozen --extra api uvicorn midweek_merchant.api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: MM_CORS_ORIGINS
+        value: https://moses946.github.io
+      - key: MM_MAX_SOLVES
+        value: "1"

@@ -1,0 +1,208 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * Design tokens. Dark is the primary theme; light is selected separately (not inverted).
+ * Chart series slots were validated for colour-vision deficiency and contrast against
+ * each theme's card surface (see web/README.md).
+ */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f3f4f0;
+  --bg-elev: #fafaf8;
+  --card: #ffffff;
+  --card-2: #f5f6f2;
+  --card-3: #eceee8;
+  --line: rgba(12, 16, 13, 0.08);
+  --line-strong: rgba(12, 16, 13, 0.14);
+  --ink: #0b0e0c;
+  --ink-2: #4a524e;
+  --muted: #7f8782;
+  --accent: #c5f03c;
+  --accent-ink: #0b0f05;
+  --accent-text: #3f6a0a;
+  --accent-soft: rgba(132, 186, 20, 0.14);
+  --good: #0f7a0f;
+  --good-soft: rgba(15, 122, 15, 0.1);
+  --bad: #c43535;
+  --bad-soft: rgba(196, 53, 53, 0.1);
+  --warn: #b07800;
+  --warn-soft: rgba(250, 178, 25, 0.16);
+  --grid: #e6e7e1;
+  --axis: #c9cbc3;
+  --s1: #4d8a0b;
+  --s2: #6f5ce6;
+  --s3: #d06a12;
+  --s4: #2a78d6;
+  --s5: #c94277;
+  --pitch-a: #e7f0e1;
+  --pitch-b: #e1ebda;
+  --pitch-line: rgba(40, 80, 30, 0.18);
+  --shadow: 0 1px 2px rgba(12, 16, 13, 0.04), 0 8px 24px -12px rgba(12, 16, 13, 0.12);
+  --glow: radial-gradient(60% 50% at 15% 0%, rgba(197, 240, 60, 0.18), transparent 70%);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #07090b;
+  --bg-elev: #0a0d10;
+  --card: #0f1317;
+  --card-2: #141a1f;
+  --card-3: #1a2127;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.12);
+  --ink: #eef2ef;
+  --ink-2: #a3aca8;
+  --muted: #6c7672;
+  --accent: #c5f03c;
+  --accent-ink: #0b0f05;
+  --accent-text: #c5f03c;
+  --accent-soft: rgba(197, 240, 60, 0.1);
+  --good: #3ccf63;
+  --good-soft: rgba(60, 207, 99, 0.12);
+  --bad: #ef6b6b;
+  --bad-soft: rgba(239, 107, 107, 0.12);
+  --warn: #fab219;
+  --warn-soft: rgba(250, 178, 25, 0.12);
+  --grid: #1a2025;
+  --axis: #2b3238;
+  --s1: #6ca814;
+  --s2: #8b7cf6;
+  --s3: #d9781c;
+  --s4: #3593cf;
+  --s5: #d55181;
+  --pitch-a: #0f1d14;
+  --pitch-b: #0d1911;
+  --pitch-line: rgba(197, 240, 60, 0.13);
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px -16px rgba(0, 0, 0, 0.6);
+  --glow: radial-gradient(60% 50% at 15% 0%, rgba(197, 240, 60, 0.09), transparent 70%);
+}
+
+@theme inline {
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-card-3: var(--card-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-s1: var(--s1);
+  --color-s2: var(--s2);
+  --color-s3: var(--s3);
+  --color-s4: var(--s4);
+  --color-s5: var(--s5);
+  --shadow-card: var(--shadow);
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'ss01', 'cv11';
+    min-height: 100dvh;
+  }
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+  .pitch {
+    background: repeating-linear-gradient(
+      180deg,
+      var(--pitch-a) 0,
+      var(--pitch-a) 12.5%,
+      var(--pitch-b) 12.5%,
+      var(--pitch-b) 25%
+    );
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--card-2) 0%, var(--card-3) 50%, var(--card-2) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+    border-radius: 10px;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .skeleton {
+    animation: none;
+  }
+}
