@@ -1,0 +1,2590 @@
+{
+ "state": {
+  "entry_id": 3649661,
+  "name": "in6months",
+  "next_gw": 9,
+  "squad": [
+   {
+    "element": 1,
+    "name": "Raya",
+    "position": "GKP",
+    "team": "Arsenal",
+    "purchase_price": 60,
+    "now_cost": 62,
+    "selling_price": 61
+   },
+   {
+    "element": 449,
+    "name": "Hall",
+    "position": "DEF",
+    "team": "Newcastle",
+    "purchase_price": 53,
+    "now_cost": 53,
+    "selling_price": 53
+   },
+   {
+    "element": 8,
+    "name": "Calafiori",
+    "position": "DEF",
+    "team": "Arsenal",
+    "purchase_price": 55,
+    "now_cost": 60,
+    "selling_price": 57
+   },
+   {
+    "element": 115,
+    "name": "De Cuyper",
+    "position": "DEF",
+    "team": "Brighton",
+    "purchase_price": 50,
+    "now_cost": 53,
+    "selling_price": 51
+   },
+   {
+    "element": 399,
+    "name": "Cherki",
+    "position": "MID",
+    "team": "Man City",
+    "purchase_price": 79,
+    "now_cost": 80,
+    "selling_price": 79
+   },
+   {
+    "element": 124,
+    "name": "Gro\u00df",
+    "position": "MID",
+    "team": "Brighton",
+    "purchase_price": 59,
+    "now_cost": 62,
+    "selling_price": 60
+   },
+   {
+    "element": 286,
+    "name": "Belloumi",
+    "position": "MID",
+    "team": "Hull",
+    "purchase_price": 52,
+    "now_cost": 52,
+    "selling_price": 52
+   },
+   {
+    "element": 40,
+    "name": "Rogers",
+    "position": "MID",
+    "team": "Chelsea",
+    "purchase_price": 76,
+    "now_cost": 80,
+    "selling_price": 78
+   },
+   {
+    "element": 249,
+    "name": "Barry",
+    "position": "FWD",
+    "team": "Everton",
+    "purchase_price": 57,
+    "now_cost": 57,
+    "selling_price": 57
+   },
+   {
+    "element": 411,
+    "name": "Haaland",
+    "position": "FWD",
+    "team": "Man City",
+    "purchase_price": 157,
+    "now_cost": 157,
+    "selling_price": 157
+   },
+   {
+    "element": 346,
+    "name": "Calvert-Lewin",
+    "position": "FWD",
+    "team": "Leeds",
+    "purchase_price": 60,
+    "now_cost": 61,
+    "selling_price": 60
+   },
+   {
+    "element": 109,
+    "name": "Verbruggen",
+    "position": "GKP",
+    "team": "Brighton",
+    "purchase_price": 45,
+    "now_cost": 46,
+    "selling_price": 45
+   },
+   {
+    "element": 480,
+    "name": "Gibbs-White",
+    "position": "MID",
+    "team": "Nott'm Forest",
+    "purchase_price": 79,
+    "now_cost": 79,
+    "selling_price": 79
+   },
+   {
+    "element": 229,
+    "name": "Tarkowski",
+    "position": "DEF",
+    "team": "Everton",
+    "purchase_price": 62,
+    "now_cost": 62,
+    "selling_price": 62
+   },
+   {
+    "element": 330,
+    "name": "Bogle",
+    "position": "DEF",
+    "team": "Leeds",
+    "purchase_price": 46,
+    "now_cost": 47,
+    "selling_price": 46
+   }
+  ],
+  "bank": 2,
+  "free_transfers": 1,
+  "chips_available": {
+   "wildcard": [
+    2
+   ],
+   "freehit": [
+    1,
+    2
+   ],
+   "bboost": [
+    1,
+    2
+   ],
+   "3xc": [
+    1,
+    2
+   ]
+  },
+  "chips_used": [
+   {
+    "name": "wildcard",
+    "event": 6
+   }
+  ],
+  "total_points": 396,
+  "overall_rank": 6046704,
+  "last_gw_points": 0,
+  "ft_check": {
+   "mismatches": []
+  },
+  "notes": [],
+  "squad_value": 997
+ },
+ "status": "Optimal",
+ "objective": 203.95622786583178,
+ "total_xpts": 289.464909082331,
+ "weeks": [
+  {
+   "gw": 9,
+   "chip": null,
+   "xpts": 48.47,
+   "hits": 0,
+   "free_transfers": 1,
+   "bank": 0.4,
+   "transfers_in": [
+    {
+     "element": 112,
+     "name": "Van Hecke",
+     "team": "TOT",
+     "position": "DEF",
+     "price": 4.9,
+     "xpts": 4.5,
+     "fixture": "CRY(H)"
+    }
+   ],
+   "transfers_out": [
+    {
+     "element": 115,
+     "name": "De Cuyper",
+     "team": "BHA",
+     "position": "DEF",
+     "price": 5.3,
+     "xpts": 1.92,
+     "fixture": "MCI(A)"
+    }
+   ],
+   "lineup": [
+    {
+     "element": 1,
+     "name": "Raya",
+     "team": "ARS",
+     "position": "GKP",
+     "price": 6.2,
+     "xpts": 3.01,
+     "fixture": "LIV(A)"
+    },
+    {
+     "element": 112,
+     "name": "Van Hecke",
+     "team": "TOT",
+     "position": "DEF",
+     "price": 4.9,
+     "xpts": 4.5,
+     "fixture": "CRY(H)"
+    },
+    {
+     "element": 229,
+     "name": "Tarkowski",
+     "team": "EVE",
+     "position": "DEF",
+     "price": 6.2,
+     "xpts": 3.5,
+     "fixture": "NEW(A)"
+    },
+    {
+     "element": 8,
+     "name": "Calafiori",
+     "team": "ARS",
+     "position": "DEF",
+     "price": 6.0,
+     "xpts": 3.48,
+     "fixture": "LIV(A)"
+    },
+    {
+     "element": 449,
+     "name": "Hall",
+     "team": "NEW",
+     "position": "DEF",
+     "price": 5.3,
+     "xpts": 3.35,
+     "fixture": "EVE(H)"
+    },
+    {
+     "element": 40,
+     "name": "Rogers",
+     "team": "CHE",
+     "position": "MID",
+     "price": 8.0,
+     "xpts": 4.83,
+     "fixture": "MUN(H)"
+    },
+    {
+     "element": 480,
+     "name": "Gibbs-White",
+     "team": "NFO",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 4.08,
+     "fixture": "BRE(A)"
+    },
+    {
+     "element": 399,
+     "name": "Cherki",
+     "team": "MCI",
+     "position": "MID",
+     "price": 8.0,
+     "xpts": 3.63,
+     "fixture": "BHA(H)"
+    },
+    {
+     "element": 124,
+     "name": "Gro\u00df",
+     "team": "BHA",
+     "position": "MID",
+     "price": 6.2,
+     "xpts": 3.2,
+     "fixture": "MCI(A)"
+    },
+    {
+     "element": 411,
+     "name": "Haaland",
+     "team": "MCI",
+     "position": "FWD",
+     "price": 15.7,
+     "xpts": 5.53,
+     "fixture": "BHA(H)"
+    },
+    {
+     "element": 249,
+     "name": "Barry",
+     "team": "EVE",
+     "position": "FWD",
+     "price": 5.7,
+     "xpts": 3.83,
+     "fixture": "NEW(A)"
+    }
+   ],
+   "bench": [
+    {
+     "element": 109,
+     "name": "Verbruggen",
+     "team": "BHA",
+     "position": "GKP",
+     "price": 4.6,
+     "xpts": 2.33,
+     "fixture": "MCI(A)"
+    },
+    {
+     "element": 286,
+     "name": "Belloumi",
+     "team": "HUL",
+     "position": "MID",
+     "price": 5.2,
+     "xpts": 2.97,
+     "fixture": "IPS(H)"
+    },
+    {
+     "element": 330,
+     "name": "Bogle",
+     "team": "LEE",
+     "position": "DEF",
+     "price": 4.7,
+     "xpts": 2.65,
+     "fixture": "BOU(A)"
+    },
+    {
+     "element": 346,
+     "name": "Calvert-Lewin",
+     "team": "LEE",
+     "position": "FWD",
+     "price": 6.1,
+     "xpts": 1.91,
+     "fixture": "BOU(A)"
+    }
+   ],
+   "captain": {
+    "element": 411,
+    "name": "Haaland",
+    "team": "MCI",
+    "position": "FWD",
+    "price": 15.7,
+    "xpts": 5.53,
+    "fixture": "BHA(H)"
+   },
+   "vice": {
+    "element": 40,
+    "name": "Rogers",
+    "team": "CHE",
+    "position": "MID",
+    "price": 8.0,
+    "xpts": 4.83,
+    "fixture": "MUN(H)"
+   }
+  },
+  {
+   "gw": 10,
+   "chip": null,
+   "xpts": 48.97,
+   "hits": 0,
+   "free_transfers": 1,
+   "bank": 0.4,
+   "transfers_in": [
+    {
+     "element": 427,
+     "name": "Mbeumo",
+     "team": "MUN",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 4.6,
+     "fixture": "AVL(H)"
+    }
+   ],
+   "transfers_out": [
+    {
+     "element": 399,
+     "name": "Cherki",
+     "team": "MCI",
+     "position": "MID",
+     "price": 8.0,
+     "xpts": 3.01,
+     "fixture": "NFO(A)"
+    }
+   ],
+   "lineup": [
+    {
+     "element": 1,
+     "name": "Raya",
+     "team": "ARS",
+     "position": "GKP",
+     "price": 6.2,
+     "xpts": 3.56,
+     "fixture": "HUL(H)"
+    },
+    {
+     "element": 8,
+     "name": "Calafiori",
+     "team": "ARS",
+     "position": "DEF",
+     "price": 6.0,
+     "xpts": 4.61,
+     "fixture": "HUL(H)"
+    },
+    {
+     "element": 229,
+     "name": "Tarkowski",
+     "team": "EVE",
+     "position": "DEF",
+     "price": 6.2,
+     "xpts": 4.15,
+     "fixture": "COV(H)"
+    },
+    {
+     "element": 112,
+     "name": "Van Hecke",
+     "team": "TOT",
+     "position": "DEF",
+     "price": 4.9,
+     "xpts": 3.33,
+     "fixture": "LEE(A)"
+    },
+    {
+     "element": 427,
+     "name": "Mbeumo",
+     "team": "MUN",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 4.6,
+     "fixture": "AVL(H)"
+    },
+    {
+     "element": 40,
+     "name": "Rogers",
+     "team": "CHE",
+     "position": "MID",
+     "price": 8.0,
+     "xpts": 4.39,
+     "fixture": "SUN(A)"
+    },
+    {
+     "element": 480,
+     "name": "Gibbs-White",
+     "team": "NFO",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 3.92,
+     "fixture": "MCI(H)"
+    },
+    {
+     "element": 124,
+     "name": "Gro\u00df",
+     "team": "BHA",
+     "position": "MID",
+     "price": 6.2,
+     "xpts": 3.84,
+     "fixture": "BRE(H)"
+    },
+    {
+     "element": 411,
+     "name": "Haaland",
+     "team": "MCI",
+     "position": "FWD",
+     "price": 15.7,
+     "xpts": 4.59,
+     "fixture": "NFO(A)"
+    },
+    {
+     "element": 249,
+     "name": "Barry",
+     "team": "EVE",
+     "position": "FWD",
+     "price": 5.7,
+     "xpts": 4.13,
+     "fixture": "COV(H)"
+    },
+    {
+     "element": 346,
+     "name": "Calvert-Lewin",
+     "team": "LEE",
+     "position": "FWD",
+     "price": 6.1,
+     "xpts": 3.25,
+     "fixture": "TOT(H)"
+    }
+   ],
+   "bench": [
+    {
+     "element": 109,
+     "name": "Verbruggen",
+     "team": "BHA",
+     "position": "GKP",
+     "price": 4.6,
+     "xpts": 2.75,
+     "fixture": "BRE(H)"
+    },
+    {
+     "element": 330,
+     "name": "Bogle",
+     "team": "LEE",
+     "position": "DEF",
+     "price": 4.7,
+     "xpts": 3.15,
+     "fixture": "TOT(H)"
+    },
+    {
+     "element": 449,
+     "name": "Hall",
+     "team": "NEW",
+     "position": "DEF",
+     "price": 5.3,
+     "xpts": 2.78,
+     "fixture": "FUL(A)"
+    },
+    {
+     "element": 286,
+     "name": "Belloumi",
+     "team": "HUL",
+     "position": "MID",
+     "price": 5.2,
+     "xpts": 2.09,
+     "fixture": "ARS(A)"
+    }
+   ],
+   "captain": {
+    "element": 8,
+    "name": "Calafiori",
+    "team": "ARS",
+    "position": "DEF",
+    "price": 6.0,
+    "xpts": 4.61,
+    "fixture": "HUL(H)"
+   },
+   "vice": {
+    "element": 427,
+    "name": "Mbeumo",
+    "team": "MUN",
+    "position": "MID",
+    "price": 7.9,
+    "xpts": 4.6,
+    "fixture": "AVL(H)"
+   }
+  },
+  {
+   "gw": 11,
+   "chip": null,
+   "xpts": 46.81,
+   "hits": 0,
+   "free_transfers": 1,
+   "bank": 0.4,
+   "transfers_in": [],
+   "transfers_out": [],
+   "lineup": [
+    {
+     "element": 1,
+     "name": "Raya",
+     "team": "ARS",
+     "position": "GKP",
+     "price": 6.2,
+     "xpts": 3.01,
+     "fixture": "NEW(A)"
+    },
+    {
+     "element": 112,
+     "name": "Van Hecke",
+     "team": "TOT",
+     "position": "DEF",
+     "price": 4.9,
+     "xpts": 4.05,
+     "fixture": "IPS(H)"
+    },
+    {
+     "element": 8,
+     "name": "Calafiori",
+     "team": "ARS",
+     "position": "DEF",
+     "price": 6.0,
+     "xpts": 3.52,
+     "fixture": "NEW(A)"
+    },
+    {
+     "element": 229,
+     "name": "Tarkowski",
+     "team": "EVE",
+     "position": "DEF",
+     "price": 6.2,
+     "xpts": 3.11,
+     "fixture": "BRE(A)"
+    },
+    {
+     "element": 40,
+     "name": "Rogers",
+     "team": "CHE",
+     "position": "MID",
+     "price": 8.0,
+     "xpts": 4.53,
+     "fixture": "LEE(H)"
+    },
+    {
+     "element": 480,
+     "name": "Gibbs-White",
+     "team": "NFO",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 3.81,
+     "fixture": "BOU(A)"
+    },
+    {
+     "element": 124,
+     "name": "Gro\u00df",
+     "team": "BHA",
+     "position": "MID",
+     "price": 6.2,
+     "xpts": 3.77,
+     "fixture": "HUL(A)"
+    },
+    {
+     "element": 427,
+     "name": "Mbeumo",
+     "team": "MUN",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 3.45,
+     "fixture": "LIV(A)"
+    },
+    {
+     "element": 411,
+     "name": "Haaland",
+     "team": "MCI",
+     "position": "FWD",
+     "price": 15.7,
+     "xpts": 5.57,
+     "fixture": "FUL(H)"
+    },
+    {
+     "element": 249,
+     "name": "Barry",
+     "team": "EVE",
+     "position": "FWD",
+     "price": 5.7,
+     "xpts": 3.22,
+     "fixture": "BRE(A)"
+    },
+    {
+     "element": 346,
+     "name": "Calvert-Lewin",
+     "team": "LEE",
+     "position": "FWD",
+     "price": 6.1,
+     "xpts": 3.2,
+     "fixture": "CHE(A)"
+    }
+   ],
+   "bench": [
+    {
+     "element": 109,
+     "name": "Verbruggen",
+     "team": "BHA",
+     "position": "GKP",
+     "price": 4.6,
+     "xpts": 2.96,
+     "fixture": "HUL(A)"
+    },
+    {
+     "element": 286,
+     "name": "Belloumi",
+     "team": "HUL",
+     "position": "MID",
+     "price": 5.2,
+     "xpts": 2.5,
+     "fixture": "BHA(H)"
+    },
+    {
+     "element": 449,
+     "name": "Hall",
+     "team": "NEW",
+     "position": "DEF",
+     "price": 5.3,
+     "xpts": 2.41,
+     "fixture": "ARS(H)"
+    },
+    {
+     "element": 330,
+     "name": "Bogle",
+     "team": "LEE",
+     "position": "DEF",
+     "price": 4.7,
+     "xpts": 2.27,
+     "fixture": "CHE(A)"
+    }
+   ],
+   "captain": {
+    "element": 411,
+    "name": "Haaland",
+    "team": "MCI",
+    "position": "FWD",
+    "price": 15.7,
+    "xpts": 5.57,
+    "fixture": "FUL(H)"
+   },
+   "vice": {
+    "element": 40,
+    "name": "Rogers",
+    "team": "CHE",
+    "position": "MID",
+    "price": 8.0,
+    "xpts": 4.53,
+    "fixture": "LEE(H)"
+   }
+  },
+  {
+   "gw": 12,
+   "chip": null,
+   "xpts": 47.28,
+   "hits": 0,
+   "free_transfers": 2,
+   "bank": 3.9,
+   "transfers_in": [
+    {
+     "element": 426,
+     "name": "B.Fernandes",
+     "team": "MUN",
+     "position": "MID",
+     "price": 11.7,
+     "xpts": 4.83,
+     "fixture": "BRE(H)"
+    },
+    {
+     "element": 552,
+     "name": "Brobbey",
+     "team": "SUN",
+     "position": "FWD",
+     "price": 5.7,
+     "xpts": 3.53,
+     "fixture": "TOT(H)"
+    }
+   ],
+   "transfers_out": [
+    {
+     "element": 286,
+     "name": "Belloumi",
+     "team": "HUL",
+     "position": "MID",
+     "price": 5.2,
+     "xpts": 2.63,
+     "fixture": "CRY(A)"
+    },
+    {
+     "element": 411,
+     "name": "Haaland",
+     "team": "MCI",
+     "position": "FWD",
+     "price": 15.7,
+     "xpts": 3.75,
+     "fixture": "ARS(A)"
+    }
+   ],
+   "lineup": [
+    {
+     "element": 109,
+     "name": "Verbruggen",
+     "team": "BHA",
+     "position": "GKP",
+     "price": 4.6,
+     "xpts": 2.85,
+     "fixture": "NEW(H)"
+    },
+    {
+     "element": 330,
+     "name": "Bogle",
+     "team": "LEE",
+     "position": "DEF",
+     "price": 4.7,
+     "xpts": 3.56,
+     "fixture": "COV(H)"
+    },
+    {
+     "element": 112,
+     "name": "Van Hecke",
+     "team": "TOT",
+     "position": "DEF",
+     "price": 4.9,
+     "xpts": 3.47,
+     "fixture": "SUN(A)"
+    },
+    {
+     "element": 229,
+     "name": "Tarkowski",
+     "team": "EVE",
+     "position": "DEF",
+     "price": 6.2,
+     "xpts": 3.46,
+     "fixture": "LIV(H)"
+    },
+    {
+     "element": 426,
+     "name": "B.Fernandes",
+     "team": "MUN",
+     "position": "MID",
+     "price": 11.7,
+     "xpts": 4.83,
+     "fixture": "BRE(H)"
+    },
+    {
+     "element": 427,
+     "name": "Mbeumo",
+     "team": "MUN",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 4.31,
+     "fixture": "BRE(H)"
+    },
+    {
+     "element": 124,
+     "name": "Gro\u00df",
+     "team": "BHA",
+     "position": "MID",
+     "price": 6.2,
+     "xpts": 4.1,
+     "fixture": "NEW(H)"
+    },
+    {
+     "element": 480,
+     "name": "Gibbs-White",
+     "team": "NFO",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 4.09,
+     "fixture": "CHE(H)"
+    },
+    {
+     "element": 40,
+     "name": "Rogers",
+     "team": "CHE",
+     "position": "MID",
+     "price": 8.0,
+     "xpts": 3.96,
+     "fixture": "NFO(A)"
+    },
+    {
+     "element": 346,
+     "name": "Calvert-Lewin",
+     "team": "LEE",
+     "position": "FWD",
+     "price": 6.1,
+     "xpts": 4.3,
+     "fixture": "COV(H)"
+    },
+    {
+     "element": 552,
+     "name": "Brobbey",
+     "team": "SUN",
+     "position": "FWD",
+     "price": 5.7,
+     "xpts": 3.53,
+     "fixture": "TOT(H)"
+    }
+   ],
+   "bench": [
+    {
+     "element": 1,
+     "name": "Raya",
+     "team": "ARS",
+     "position": "GKP",
+     "price": 6.2,
+     "xpts": 2.84,
+     "fixture": "MCI(H)"
+    },
+    {
+     "element": 249,
+     "name": "Barry",
+     "team": "EVE",
+     "position": "FWD",
+     "price": 5.7,
+     "xpts": 3.18,
+     "fixture": "LIV(H)"
+    },
+    {
+     "element": 8,
+     "name": "Calafiori",
+     "team": "ARS",
+     "position": "DEF",
+     "price": 6.0,
+     "xpts": 3.09,
+     "fixture": "MCI(H)"
+    },
+    {
+     "element": 449,
+     "name": "Hall",
+     "team": "NEW",
+     "position": "DEF",
+     "price": 5.3,
+     "xpts": 2.31,
+     "fixture": "BHA(A)"
+    }
+   ],
+   "captain": {
+    "element": 426,
+    "name": "B.Fernandes",
+    "team": "MUN",
+    "position": "MID",
+    "price": 11.7,
+    "xpts": 4.83,
+    "fixture": "BRE(H)"
+   },
+   "vice": {
+    "element": 427,
+    "name": "Mbeumo",
+    "team": "MUN",
+    "position": "MID",
+    "price": 7.9,
+    "xpts": 4.31,
+    "fixture": "BRE(H)"
+   }
+  },
+  {
+   "gw": 13,
+   "chip": null,
+   "xpts": 48.86,
+   "hits": 0,
+   "free_transfers": 1,
+   "bank": 0.1,
+   "transfers_in": [
+    {
+     "element": 154,
+     "name": "Palmer",
+     "team": "CHE",
+     "position": "MID",
+     "price": 9.8,
+     "xpts": 5.78,
+     "fixture": "CRY(H)"
+    }
+   ],
+   "transfers_out": [
+    {
+     "element": 124,
+     "name": "Gro\u00df",
+     "team": "BHA",
+     "position": "MID",
+     "price": 6.2,
+     "xpts": 3.39,
+     "fixture": "BOU(A)"
+    }
+   ],
+   "lineup": [
+    {
+     "element": 1,
+     "name": "Raya",
+     "team": "ARS",
+     "position": "GKP",
+     "price": 6.2,
+     "xpts": 2.85,
+     "fixture": "BRE(A)"
+    },
+    {
+     "element": 112,
+     "name": "Van Hecke",
+     "team": "TOT",
+     "position": "DEF",
+     "price": 4.9,
+     "xpts": 3.79,
+     "fixture": "FUL(H)"
+    },
+    {
+     "element": 229,
+     "name": "Tarkowski",
+     "team": "EVE",
+     "position": "DEF",
+     "price": 6.2,
+     "xpts": 3.24,
+     "fixture": "AVL(A)"
+    },
+    {
+     "element": 8,
+     "name": "Calafiori",
+     "team": "ARS",
+     "position": "DEF",
+     "price": 6.0,
+     "xpts": 3.06,
+     "fixture": "BRE(A)"
+    },
+    {
+     "element": 154,
+     "name": "Palmer",
+     "team": "CHE",
+     "position": "MID",
+     "price": 9.8,
+     "xpts": 5.78,
+     "fixture": "CRY(H)"
+    },
+    {
+     "element": 40,
+     "name": "Rogers",
+     "team": "CHE",
+     "position": "MID",
+     "price": 8.0,
+     "xpts": 5.3,
+     "fixture": "CRY(H)"
+    },
+    {
+     "element": 426,
+     "name": "B.Fernandes",
+     "team": "MUN",
+     "position": "MID",
+     "price": 11.7,
+     "xpts": 4.58,
+     "fixture": "NEW(A)"
+    },
+    {
+     "element": 480,
+     "name": "Gibbs-White",
+     "team": "NFO",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 4.13,
+     "fixture": "HUL(A)"
+    },
+    {
+     "element": 427,
+     "name": "Mbeumo",
+     "team": "MUN",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 4.08,
+     "fixture": "NEW(A)"
+    },
+    {
+     "element": 346,
+     "name": "Calvert-Lewin",
+     "team": "LEE",
+     "position": "FWD",
+     "price": 6.1,
+     "xpts": 3.18,
+     "fixture": "MCI(A)"
+    },
+    {
+     "element": 249,
+     "name": "Barry",
+     "team": "EVE",
+     "position": "FWD",
+     "price": 5.7,
+     "xpts": 3.09,
+     "fixture": "AVL(A)"
+    }
+   ],
+   "bench": [
+    {
+     "element": 109,
+     "name": "Verbruggen",
+     "team": "BHA",
+     "position": "GKP",
+     "price": 4.6,
+     "xpts": 2.58,
+     "fixture": "BOU(A)"
+    },
+    {
+     "element": 552,
+     "name": "Brobbey",
+     "team": "SUN",
+     "position": "FWD",
+     "price": 5.7,
+     "xpts": 2.95,
+     "fixture": "LIV(A)"
+    },
+    {
+     "element": 449,
+     "name": "Hall",
+     "team": "NEW",
+     "position": "DEF",
+     "price": 5.3,
+     "xpts": 2.89,
+     "fixture": "MUN(H)"
+    },
+    {
+     "element": 330,
+     "name": "Bogle",
+     "team": "LEE",
+     "position": "DEF",
+     "price": 4.7,
+     "xpts": 1.97,
+     "fixture": "MCI(A)"
+    }
+   ],
+   "captain": {
+    "element": 154,
+    "name": "Palmer",
+    "team": "CHE",
+    "position": "MID",
+    "price": 9.8,
+    "xpts": 5.78,
+    "fixture": "CRY(H)"
+   },
+   "vice": {
+    "element": 40,
+    "name": "Rogers",
+    "team": "CHE",
+    "position": "MID",
+    "price": 8.0,
+    "xpts": 5.3,
+    "fixture": "CRY(H)"
+   }
+  },
+  {
+   "gw": 14,
+   "chip": null,
+   "xpts": 49.08,
+   "hits": 0,
+   "free_transfers": 1,
+   "bank": 0.1,
+   "transfers_in": [],
+   "transfers_out": [],
+   "lineup": [
+    {
+     "element": 1,
+     "name": "Raya",
+     "team": "ARS",
+     "position": "GKP",
+     "price": 6.2,
+     "xpts": 2.93,
+     "fixture": "TOT(A)"
+    },
+    {
+     "element": 229,
+     "name": "Tarkowski",
+     "team": "EVE",
+     "position": "DEF",
+     "price": 6.2,
+     "xpts": 3.75,
+     "fixture": "FUL(H)"
+    },
+    {
+     "element": 330,
+     "name": "Bogle",
+     "team": "LEE",
+     "position": "DEF",
+     "price": 4.7,
+     "xpts": 3.45,
+     "fixture": "IPS(H)"
+    },
+    {
+     "element": 449,
+     "name": "Hall",
+     "team": "NEW",
+     "position": "DEF",
+     "price": 5.3,
+     "xpts": 3.2,
+     "fixture": "SUN(H)"
+    },
+    {
+     "element": 426,
+     "name": "B.Fernandes",
+     "team": "MUN",
+     "position": "MID",
+     "price": 11.7,
+     "xpts": 5.3,
+     "fixture": "COV(H)"
+    },
+    {
+     "element": 427,
+     "name": "Mbeumo",
+     "team": "MUN",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 4.69,
+     "fixture": "COV(H)"
+    },
+    {
+     "element": 154,
+     "name": "Palmer",
+     "team": "CHE",
+     "position": "MID",
+     "price": 9.8,
+     "xpts": 4.38,
+     "fixture": "LIV(H)"
+    },
+    {
+     "element": 40,
+     "name": "Rogers",
+     "team": "CHE",
+     "position": "MID",
+     "price": 8.0,
+     "xpts": 4.09,
+     "fixture": "LIV(H)"
+    },
+    {
+     "element": 480,
+     "name": "Gibbs-White",
+     "team": "NFO",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 3.91,
+     "fixture": "BHA(H)"
+    },
+    {
+     "element": 346,
+     "name": "Calvert-Lewin",
+     "team": "LEE",
+     "position": "FWD",
+     "price": 6.1,
+     "xpts": 4.56,
+     "fixture": "IPS(H)"
+    },
+    {
+     "element": 249,
+     "name": "Barry",
+     "team": "EVE",
+     "position": "FWD",
+     "price": 5.7,
+     "xpts": 3.51,
+     "fixture": "FUL(H)"
+    }
+   ],
+   "bench": [
+    {
+     "element": 109,
+     "name": "Verbruggen",
+     "team": "BHA",
+     "position": "GKP",
+     "price": 4.6,
+     "xpts": 2.65,
+     "fixture": "NFO(A)"
+    },
+    {
+     "element": 552,
+     "name": "Brobbey",
+     "team": "SUN",
+     "position": "FWD",
+     "price": 5.7,
+     "xpts": 3.47,
+     "fixture": "NEW(A)"
+    },
+    {
+     "element": 8,
+     "name": "Calafiori",
+     "team": "ARS",
+     "position": "DEF",
+     "price": 6.0,
+     "xpts": 3.13,
+     "fixture": "TOT(A)"
+    },
+    {
+     "element": 112,
+     "name": "Van Hecke",
+     "team": "TOT",
+     "position": "DEF",
+     "price": 4.9,
+     "xpts": 2.96,
+     "fixture": "ARS(H)"
+    }
+   ],
+   "captain": {
+    "element": 426,
+    "name": "B.Fernandes",
+    "team": "MUN",
+    "position": "MID",
+    "price": 11.7,
+    "xpts": 5.3,
+    "fixture": "COV(H)"
+   },
+   "vice": {
+    "element": 427,
+    "name": "Mbeumo",
+    "team": "MUN",
+    "position": "MID",
+    "price": 7.9,
+    "xpts": 4.69,
+    "fixture": "COV(H)"
+   }
+  }
+ ],
+ "chips": {
+  "baseline_xpts": 289.464909082331,
+  "quick": [
+   {
+    "gw": 9,
+    "bboost": 9.85626481587396,
+    "3xc": 5.528927403127536,
+    "freehit": 5.233320705720402,
+    "planned_xpts": 48.46503141829349
+   },
+   {
+    "gw": 10,
+    "bboost": 10.784534213449685,
+    "3xc": 4.612999199886052,
+    "freehit": 4.769146865543753,
+    "planned_xpts": 48.96927543475953
+   },
+   {
+    "gw": 11,
+    "bboost": 10.133665830707468,
+    "3xc": 5.5691967215125135,
+    "freehit": 3.8368050634044906,
+    "planned_xpts": 46.80939937379641
+   },
+   {
+    "gw": 12,
+    "bboost": 11.419275685583564,
+    "3xc": 4.826888516309819,
+    "freehit": 1.4650701829922212,
+    "planned_xpts": 47.27612156858586
+   },
+   {
+    "gw": 13,
+    "bboost": 10.38962171230015,
+    "3xc": 5.781930894291353,
+    "freehit": 3.3587201305051906,
+    "planned_xpts": 48.86401211281779
+   },
+   {
+    "gw": 14,
+    "bboost": 12.215753224894605,
+    "3xc": 5.297376091514345,
+    "freehit": 2.23542297401476,
+    "planned_xpts": 49.08106917407794
+   }
+  ],
+  "exact": [
+   {
+    "chip": "freehit",
+    "gw": 9,
+    "total_xpts": 291.9670818195593,
+    "gain": 2.5021727372283067,
+    "status": "Optimal"
+   },
+   {
+    "chip": "freehit",
+    "gw": 10,
+    "total_xpts": 291.9641631904164,
+    "gain": 2.499254108085381,
+    "status": "Optimal"
+   },
+   {
+    "chip": "freehit",
+    "gw": 11,
+    "total_xpts": 290.3968337380558,
+    "gain": 0.9319246557247993,
+    "status": "Optimal"
+   },
+   {
+    "chip": "freehit",
+    "gw": 12,
+    "total_xpts": 291.3627520426277,
+    "gain": 1.8978429602966571,
+    "status": "Optimal"
+   },
+   {
+    "chip": "freehit",
+    "gw": 13,
+    "total_xpts": 291.79418839419907,
+    "gain": 2.3292793118680493,
+    "status": "Optimal"
+   },
+   {
+    "chip": "freehit",
+    "gw": 14,
+    "total_xpts": 291.07624252767323,
+    "gain": 1.6113334453422112,
+    "status": "Optimal"
+   },
+   {
+    "chip": "bboost",
+    "gw": 9,
+    "total_xpts": 299.32117389820496,
+    "gain": 9.856264815873942,
+    "status": "Optimal"
+   },
+   {
+    "chip": "bboost",
+    "gw": 10,
+    "total_xpts": 300.2494432957807,
+    "gain": 10.78453421344966,
+    "status": "Optimal"
+   },
+   {
+    "chip": "bboost",
+    "gw": 11,
+    "total_xpts": 299.26216342276155,
+    "gain": 9.797254340430527,
+    "status": "Optimal"
+   },
+   {
+    "chip": "bboost",
+    "gw": 12,
+    "total_xpts": 300.8841847679146,
+    "gain": 11.419275685583557,
+    "status": "Optimal"
+   },
+   {
+    "chip": "bboost",
+    "gw": 13,
+    "total_xpts": 299.85453079463116,
+    "gain": 10.38962171230014,
+    "status": "Optimal"
+   },
+   {
+    "chip": "bboost",
+    "gw": 14,
+    "total_xpts": 301.68066230722565,
+    "gain": 12.215753224894627,
+    "status": "Optimal"
+   },
+   {
+    "chip": "3xc",
+    "gw": 9,
+    "total_xpts": 294.99383648545853,
+    "gain": 5.528927403127511,
+    "status": "Optimal"
+   },
+   {
+    "chip": "3xc",
+    "gw": 10,
+    "total_xpts": 294.0779082822171,
+    "gain": 4.612999199886076,
+    "status": "Optimal"
+   },
+   {
+    "chip": "3xc",
+    "gw": 11,
+    "total_xpts": 295.03410580384354,
+    "gain": 5.569196721512526,
+    "status": "Optimal"
+   },
+   {
+    "chip": "3xc",
+    "gw": 12,
+    "total_xpts": 294.2917975986408,
+    "gain": 4.826888516309793,
+    "status": "Optimal"
+   },
+   {
+    "chip": "3xc",
+    "gw": 13,
+    "total_xpts": 295.24683997662237,
+    "gain": 5.781930894291349,
+    "status": "Optimal"
+   },
+   {
+    "chip": "3xc",
+    "gw": 14,
+    "total_xpts": 294.7622851738454,
+    "gain": 5.297376091514366,
+    "status": "Optimal"
+   }
+  ],
+  "option_values": {
+   "wildcard": 6.0,
+   "freehit": 5.0,
+   "bboost": 5.0,
+   "3xc": 3.0
+  },
+  "chips_available": {
+   "wildcard": [
+    2
+   ],
+   "freehit": [
+    1,
+    2
+   ],
+   "bboost": [
+    1,
+    2
+   ],
+   "3xc": [
+    1,
+    2
+   ]
+  }
+ },
+ "with_chips": {
+  "schedule": {
+   "9": "bboost",
+   "11": "3xc"
+  },
+  "status": "Optimal",
+  "objective": 210.4172436529441,
+  "total_xpts": 304.8903706197175,
+  "weeks": [
+   {
+    "gw": 9,
+    "chip": "bboost",
+    "xpts": 58.32,
+    "hits": 0,
+    "free_transfers": 1,
+    "bank": 0.4,
+    "transfers_in": [
+     {
+      "element": 112,
+      "name": "Van Hecke",
+      "team": "TOT",
+      "position": "DEF",
+      "price": 4.9,
+      "xpts": 4.5,
+      "fixture": "CRY(H)"
+     }
+    ],
+    "transfers_out": [
+     {
+      "element": 115,
+      "name": "De Cuyper",
+      "team": "BHA",
+      "position": "DEF",
+      "price": 5.3,
+      "xpts": 1.92,
+      "fixture": "MCI(A)"
+     }
+    ],
+    "lineup": [
+     {
+      "element": 1,
+      "name": "Raya",
+      "team": "ARS",
+      "position": "GKP",
+      "price": 6.2,
+      "xpts": 3.01,
+      "fixture": "LIV(A)"
+     },
+     {
+      "element": 109,
+      "name": "Verbruggen",
+      "team": "BHA",
+      "position": "GKP",
+      "price": 4.6,
+      "xpts": 2.33,
+      "fixture": "MCI(A)"
+     },
+     {
+      "element": 112,
+      "name": "Van Hecke",
+      "team": "TOT",
+      "position": "DEF",
+      "price": 4.9,
+      "xpts": 4.5,
+      "fixture": "CRY(H)"
+     },
+     {
+      "element": 229,
+      "name": "Tarkowski",
+      "team": "EVE",
+      "position": "DEF",
+      "price": 6.2,
+      "xpts": 3.5,
+      "fixture": "NEW(A)"
+     },
+     {
+      "element": 8,
+      "name": "Calafiori",
+      "team": "ARS",
+      "position": "DEF",
+      "price": 6.0,
+      "xpts": 3.48,
+      "fixture": "LIV(A)"
+     },
+     {
+      "element": 449,
+      "name": "Hall",
+      "team": "NEW",
+      "position": "DEF",
+      "price": 5.3,
+      "xpts": 3.35,
+      "fixture": "EVE(H)"
+     },
+     {
+      "element": 330,
+      "name": "Bogle",
+      "team": "LEE",
+      "position": "DEF",
+      "price": 4.7,
+      "xpts": 2.65,
+      "fixture": "BOU(A)"
+     },
+     {
+      "element": 40,
+      "name": "Rogers",
+      "team": "CHE",
+      "position": "MID",
+      "price": 8.0,
+      "xpts": 4.83,
+      "fixture": "MUN(H)"
+     },
+     {
+      "element": 480,
+      "name": "Gibbs-White",
+      "team": "NFO",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 4.08,
+      "fixture": "BRE(A)"
+     },
+     {
+      "element": 399,
+      "name": "Cherki",
+      "team": "MCI",
+      "position": "MID",
+      "price": 8.0,
+      "xpts": 3.63,
+      "fixture": "BHA(H)"
+     },
+     {
+      "element": 124,
+      "name": "Gro\u00df",
+      "team": "BHA",
+      "position": "MID",
+      "price": 6.2,
+      "xpts": 3.2,
+      "fixture": "MCI(A)"
+     },
+     {
+      "element": 286,
+      "name": "Belloumi",
+      "team": "HUL",
+      "position": "MID",
+      "price": 5.2,
+      "xpts": 2.97,
+      "fixture": "IPS(H)"
+     },
+     {
+      "element": 411,
+      "name": "Haaland",
+      "team": "MCI",
+      "position": "FWD",
+      "price": 15.7,
+      "xpts": 5.53,
+      "fixture": "BHA(H)"
+     },
+     {
+      "element": 249,
+      "name": "Barry",
+      "team": "EVE",
+      "position": "FWD",
+      "price": 5.7,
+      "xpts": 3.83,
+      "fixture": "NEW(A)"
+     },
+     {
+      "element": 346,
+      "name": "Calvert-Lewin",
+      "team": "LEE",
+      "position": "FWD",
+      "price": 6.1,
+      "xpts": 1.91,
+      "fixture": "BOU(A)"
+     }
+    ],
+    "bench": [],
+    "captain": {
+     "element": 411,
+     "name": "Haaland",
+     "team": "MCI",
+     "position": "FWD",
+     "price": 15.7,
+     "xpts": 5.53,
+     "fixture": "BHA(H)"
+    },
+    "vice": {
+     "element": 40,
+     "name": "Rogers",
+     "team": "CHE",
+     "position": "MID",
+     "price": 8.0,
+     "xpts": 4.83,
+     "fixture": "MUN(H)"
+    }
+   },
+   {
+    "gw": 10,
+    "chip": null,
+    "xpts": 48.97,
+    "hits": 0,
+    "free_transfers": 1,
+    "bank": 0.4,
+    "transfers_in": [
+     {
+      "element": 427,
+      "name": "Mbeumo",
+      "team": "MUN",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 4.6,
+      "fixture": "AVL(H)"
+     }
+    ],
+    "transfers_out": [
+     {
+      "element": 399,
+      "name": "Cherki",
+      "team": "MCI",
+      "position": "MID",
+      "price": 8.0,
+      "xpts": 3.01,
+      "fixture": "NFO(A)"
+     }
+    ],
+    "lineup": [
+     {
+      "element": 1,
+      "name": "Raya",
+      "team": "ARS",
+      "position": "GKP",
+      "price": 6.2,
+      "xpts": 3.56,
+      "fixture": "HUL(H)"
+     },
+     {
+      "element": 8,
+      "name": "Calafiori",
+      "team": "ARS",
+      "position": "DEF",
+      "price": 6.0,
+      "xpts": 4.61,
+      "fixture": "HUL(H)"
+     },
+     {
+      "element": 229,
+      "name": "Tarkowski",
+      "team": "EVE",
+      "position": "DEF",
+      "price": 6.2,
+      "xpts": 4.15,
+      "fixture": "COV(H)"
+     },
+     {
+      "element": 112,
+      "name": "Van Hecke",
+      "team": "TOT",
+      "position": "DEF",
+      "price": 4.9,
+      "xpts": 3.33,
+      "fixture": "LEE(A)"
+     },
+     {
+      "element": 427,
+      "name": "Mbeumo",
+      "team": "MUN",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 4.6,
+      "fixture": "AVL(H)"
+     },
+     {
+      "element": 40,
+      "name": "Rogers",
+      "team": "CHE",
+      "position": "MID",
+      "price": 8.0,
+      "xpts": 4.39,
+      "fixture": "SUN(A)"
+     },
+     {
+      "element": 480,
+      "name": "Gibbs-White",
+      "team": "NFO",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 3.92,
+      "fixture": "MCI(H)"
+     },
+     {
+      "element": 124,
+      "name": "Gro\u00df",
+      "team": "BHA",
+      "position": "MID",
+      "price": 6.2,
+      "xpts": 3.84,
+      "fixture": "BRE(H)"
+     },
+     {
+      "element": 411,
+      "name": "Haaland",
+      "team": "MCI",
+      "position": "FWD",
+      "price": 15.7,
+      "xpts": 4.59,
+      "fixture": "NFO(A)"
+     },
+     {
+      "element": 249,
+      "name": "Barry",
+      "team": "EVE",
+      "position": "FWD",
+      "price": 5.7,
+      "xpts": 4.13,
+      "fixture": "COV(H)"
+     },
+     {
+      "element": 346,
+      "name": "Calvert-Lewin",
+      "team": "LEE",
+      "position": "FWD",
+      "price": 6.1,
+      "xpts": 3.25,
+      "fixture": "TOT(H)"
+     }
+    ],
+    "bench": [
+     {
+      "element": 109,
+      "name": "Verbruggen",
+      "team": "BHA",
+      "position": "GKP",
+      "price": 4.6,
+      "xpts": 2.75,
+      "fixture": "BRE(H)"
+     },
+     {
+      "element": 330,
+      "name": "Bogle",
+      "team": "LEE",
+      "position": "DEF",
+      "price": 4.7,
+      "xpts": 3.15,
+      "fixture": "TOT(H)"
+     },
+     {
+      "element": 449,
+      "name": "Hall",
+      "team": "NEW",
+      "position": "DEF",
+      "price": 5.3,
+      "xpts": 2.78,
+      "fixture": "FUL(A)"
+     },
+     {
+      "element": 286,
+      "name": "Belloumi",
+      "team": "HUL",
+      "position": "MID",
+      "price": 5.2,
+      "xpts": 2.09,
+      "fixture": "ARS(A)"
+     }
+    ],
+    "captain": {
+     "element": 8,
+     "name": "Calafiori",
+     "team": "ARS",
+     "position": "DEF",
+     "price": 6.0,
+     "xpts": 4.61,
+     "fixture": "HUL(H)"
+    },
+    "vice": {
+     "element": 427,
+     "name": "Mbeumo",
+     "team": "MUN",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 4.6,
+     "fixture": "AVL(H)"
+    }
+   },
+   {
+    "gw": 11,
+    "chip": "3xc",
+    "xpts": 52.38,
+    "hits": 0,
+    "free_transfers": 1,
+    "bank": 0.4,
+    "transfers_in": [],
+    "transfers_out": [],
+    "lineup": [
+     {
+      "element": 1,
+      "name": "Raya",
+      "team": "ARS",
+      "position": "GKP",
+      "price": 6.2,
+      "xpts": 3.01,
+      "fixture": "NEW(A)"
+     },
+     {
+      "element": 112,
+      "name": "Van Hecke",
+      "team": "TOT",
+      "position": "DEF",
+      "price": 4.9,
+      "xpts": 4.05,
+      "fixture": "IPS(H)"
+     },
+     {
+      "element": 8,
+      "name": "Calafiori",
+      "team": "ARS",
+      "position": "DEF",
+      "price": 6.0,
+      "xpts": 3.52,
+      "fixture": "NEW(A)"
+     },
+     {
+      "element": 229,
+      "name": "Tarkowski",
+      "team": "EVE",
+      "position": "DEF",
+      "price": 6.2,
+      "xpts": 3.11,
+      "fixture": "BRE(A)"
+     },
+     {
+      "element": 40,
+      "name": "Rogers",
+      "team": "CHE",
+      "position": "MID",
+      "price": 8.0,
+      "xpts": 4.53,
+      "fixture": "LEE(H)"
+     },
+     {
+      "element": 480,
+      "name": "Gibbs-White",
+      "team": "NFO",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 3.81,
+      "fixture": "BOU(A)"
+     },
+     {
+      "element": 124,
+      "name": "Gro\u00df",
+      "team": "BHA",
+      "position": "MID",
+      "price": 6.2,
+      "xpts": 3.77,
+      "fixture": "HUL(A)"
+     },
+     {
+      "element": 427,
+      "name": "Mbeumo",
+      "team": "MUN",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 3.45,
+      "fixture": "LIV(A)"
+     },
+     {
+      "element": 411,
+      "name": "Haaland",
+      "team": "MCI",
+      "position": "FWD",
+      "price": 15.7,
+      "xpts": 5.57,
+      "fixture": "FUL(H)"
+     },
+     {
+      "element": 249,
+      "name": "Barry",
+      "team": "EVE",
+      "position": "FWD",
+      "price": 5.7,
+      "xpts": 3.22,
+      "fixture": "BRE(A)"
+     },
+     {
+      "element": 346,
+      "name": "Calvert-Lewin",
+      "team": "LEE",
+      "position": "FWD",
+      "price": 6.1,
+      "xpts": 3.2,
+      "fixture": "CHE(A)"
+     }
+    ],
+    "bench": [
+     {
+      "element": 109,
+      "name": "Verbruggen",
+      "team": "BHA",
+      "position": "GKP",
+      "price": 4.6,
+      "xpts": 2.96,
+      "fixture": "HUL(A)"
+     },
+     {
+      "element": 286,
+      "name": "Belloumi",
+      "team": "HUL",
+      "position": "MID",
+      "price": 5.2,
+      "xpts": 2.5,
+      "fixture": "BHA(H)"
+     },
+     {
+      "element": 449,
+      "name": "Hall",
+      "team": "NEW",
+      "position": "DEF",
+      "price": 5.3,
+      "xpts": 2.41,
+      "fixture": "ARS(H)"
+     },
+     {
+      "element": 330,
+      "name": "Bogle",
+      "team": "LEE",
+      "position": "DEF",
+      "price": 4.7,
+      "xpts": 2.27,
+      "fixture": "CHE(A)"
+     }
+    ],
+    "captain": {
+     "element": 411,
+     "name": "Haaland",
+     "team": "MCI",
+     "position": "FWD",
+     "price": 15.7,
+     "xpts": 5.57,
+     "fixture": "FUL(H)"
+    },
+    "vice": {
+     "element": 40,
+     "name": "Rogers",
+     "team": "CHE",
+     "position": "MID",
+     "price": 8.0,
+     "xpts": 4.53,
+     "fixture": "LEE(H)"
+    }
+   },
+   {
+    "gw": 12,
+    "chip": null,
+    "xpts": 47.28,
+    "hits": 0,
+    "free_transfers": 2,
+    "bank": 3.9,
+    "transfers_in": [
+     {
+      "element": 426,
+      "name": "B.Fernandes",
+      "team": "MUN",
+      "position": "MID",
+      "price": 11.7,
+      "xpts": 4.83,
+      "fixture": "BRE(H)"
+     },
+     {
+      "element": 552,
+      "name": "Brobbey",
+      "team": "SUN",
+      "position": "FWD",
+      "price": 5.7,
+      "xpts": 3.53,
+      "fixture": "TOT(H)"
+     }
+    ],
+    "transfers_out": [
+     {
+      "element": 286,
+      "name": "Belloumi",
+      "team": "HUL",
+      "position": "MID",
+      "price": 5.2,
+      "xpts": 2.63,
+      "fixture": "CRY(A)"
+     },
+     {
+      "element": 411,
+      "name": "Haaland",
+      "team": "MCI",
+      "position": "FWD",
+      "price": 15.7,
+      "xpts": 3.75,
+      "fixture": "ARS(A)"
+     }
+    ],
+    "lineup": [
+     {
+      "element": 109,
+      "name": "Verbruggen",
+      "team": "BHA",
+      "position": "GKP",
+      "price": 4.6,
+      "xpts": 2.85,
+      "fixture": "NEW(H)"
+     },
+     {
+      "element": 330,
+      "name": "Bogle",
+      "team": "LEE",
+      "position": "DEF",
+      "price": 4.7,
+      "xpts": 3.56,
+      "fixture": "COV(H)"
+     },
+     {
+      "element": 112,
+      "name": "Van Hecke",
+      "team": "TOT",
+      "position": "DEF",
+      "price": 4.9,
+      "xpts": 3.47,
+      "fixture": "SUN(A)"
+     },
+     {
+      "element": 229,
+      "name": "Tarkowski",
+      "team": "EVE",
+      "position": "DEF",
+      "price": 6.2,
+      "xpts": 3.46,
+      "fixture": "LIV(H)"
+     },
+     {
+      "element": 426,
+      "name": "B.Fernandes",
+      "team": "MUN",
+      "position": "MID",
+      "price": 11.7,
+      "xpts": 4.83,
+      "fixture": "BRE(H)"
+     },
+     {
+      "element": 427,
+      "name": "Mbeumo",
+      "team": "MUN",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 4.31,
+      "fixture": "BRE(H)"
+     },
+     {
+      "element": 124,
+      "name": "Gro\u00df",
+      "team": "BHA",
+      "position": "MID",
+      "price": 6.2,
+      "xpts": 4.1,
+      "fixture": "NEW(H)"
+     },
+     {
+      "element": 480,
+      "name": "Gibbs-White",
+      "team": "NFO",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 4.09,
+      "fixture": "CHE(H)"
+     },
+     {
+      "element": 40,
+      "name": "Rogers",
+      "team": "CHE",
+      "position": "MID",
+      "price": 8.0,
+      "xpts": 3.96,
+      "fixture": "NFO(A)"
+     },
+     {
+      "element": 346,
+      "name": "Calvert-Lewin",
+      "team": "LEE",
+      "position": "FWD",
+      "price": 6.1,
+      "xpts": 4.3,
+      "fixture": "COV(H)"
+     },
+     {
+      "element": 552,
+      "name": "Brobbey",
+      "team": "SUN",
+      "position": "FWD",
+      "price": 5.7,
+      "xpts": 3.53,
+      "fixture": "TOT(H)"
+     }
+    ],
+    "bench": [
+     {
+      "element": 1,
+      "name": "Raya",
+      "team": "ARS",
+      "position": "GKP",
+      "price": 6.2,
+      "xpts": 2.84,
+      "fixture": "MCI(H)"
+     },
+     {
+      "element": 249,
+      "name": "Barry",
+      "team": "EVE",
+      "position": "FWD",
+      "price": 5.7,
+      "xpts": 3.18,
+      "fixture": "LIV(H)"
+     },
+     {
+      "element": 8,
+      "name": "Calafiori",
+      "team": "ARS",
+      "position": "DEF",
+      "price": 6.0,
+      "xpts": 3.09,
+      "fixture": "MCI(H)"
+     },
+     {
+      "element": 449,
+      "name": "Hall",
+      "team": "NEW",
+      "position": "DEF",
+      "price": 5.3,
+      "xpts": 2.31,
+      "fixture": "BHA(A)"
+     }
+    ],
+    "captain": {
+     "element": 426,
+     "name": "B.Fernandes",
+     "team": "MUN",
+     "position": "MID",
+     "price": 11.7,
+     "xpts": 4.83,
+     "fixture": "BRE(H)"
+    },
+    "vice": {
+     "element": 427,
+     "name": "Mbeumo",
+     "team": "MUN",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 4.31,
+     "fixture": "BRE(H)"
+    }
+   },
+   {
+    "gw": 13,
+    "chip": null,
+    "xpts": 48.86,
+    "hits": 0,
+    "free_transfers": 1,
+    "bank": 0.1,
+    "transfers_in": [
+     {
+      "element": 154,
+      "name": "Palmer",
+      "team": "CHE",
+      "position": "MID",
+      "price": 9.8,
+      "xpts": 5.78,
+      "fixture": "CRY(H)"
+     }
+    ],
+    "transfers_out": [
+     {
+      "element": 124,
+      "name": "Gro\u00df",
+      "team": "BHA",
+      "position": "MID",
+      "price": 6.2,
+      "xpts": 3.39,
+      "fixture": "BOU(A)"
+     }
+    ],
+    "lineup": [
+     {
+      "element": 1,
+      "name": "Raya",
+      "team": "ARS",
+      "position": "GKP",
+      "price": 6.2,
+      "xpts": 2.85,
+      "fixture": "BRE(A)"
+     },
+     {
+      "element": 112,
+      "name": "Van Hecke",
+      "team": "TOT",
+      "position": "DEF",
+      "price": 4.9,
+      "xpts": 3.79,
+      "fixture": "FUL(H)"
+     },
+     {
+      "element": 229,
+      "name": "Tarkowski",
+      "team": "EVE",
+      "position": "DEF",
+      "price": 6.2,
+      "xpts": 3.24,
+      "fixture": "AVL(A)"
+     },
+     {
+      "element": 8,
+      "name": "Calafiori",
+      "team": "ARS",
+      "position": "DEF",
+      "price": 6.0,
+      "xpts": 3.06,
+      "fixture": "BRE(A)"
+     },
+     {
+      "element": 154,
+      "name": "Palmer",
+      "team": "CHE",
+      "position": "MID",
+      "price": 9.8,
+      "xpts": 5.78,
+      "fixture": "CRY(H)"
+     },
+     {
+      "element": 40,
+      "name": "Rogers",
+      "team": "CHE",
+      "position": "MID",
+      "price": 8.0,
+      "xpts": 5.3,
+      "fixture": "CRY(H)"
+     },
+     {
+      "element": 426,
+      "name": "B.Fernandes",
+      "team": "MUN",
+      "position": "MID",
+      "price": 11.7,
+      "xpts": 4.58,
+      "fixture": "NEW(A)"
+     },
+     {
+      "element": 480,
+      "name": "Gibbs-White",
+      "team": "NFO",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 4.13,
+      "fixture": "HUL(A)"
+     },
+     {
+      "element": 427,
+      "name": "Mbeumo",
+      "team": "MUN",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 4.08,
+      "fixture": "NEW(A)"
+     },
+     {
+      "element": 346,
+      "name": "Calvert-Lewin",
+      "team": "LEE",
+      "position": "FWD",
+      "price": 6.1,
+      "xpts": 3.18,
+      "fixture": "MCI(A)"
+     },
+     {
+      "element": 249,
+      "name": "Barry",
+      "team": "EVE",
+      "position": "FWD",
+      "price": 5.7,
+      "xpts": 3.09,
+      "fixture": "AVL(A)"
+     }
+    ],
+    "bench": [
+     {
+      "element": 109,
+      "name": "Verbruggen",
+      "team": "BHA",
+      "position": "GKP",
+      "price": 4.6,
+      "xpts": 2.58,
+      "fixture": "BOU(A)"
+     },
+     {
+      "element": 552,
+      "name": "Brobbey",
+      "team": "SUN",
+      "position": "FWD",
+      "price": 5.7,
+      "xpts": 2.95,
+      "fixture": "LIV(A)"
+     },
+     {
+      "element": 449,
+      "name": "Hall",
+      "team": "NEW",
+      "position": "DEF",
+      "price": 5.3,
+      "xpts": 2.89,
+      "fixture": "MUN(H)"
+     },
+     {
+      "element": 330,
+      "name": "Bogle",
+      "team": "LEE",
+      "position": "DEF",
+      "price": 4.7,
+      "xpts": 1.97,
+      "fixture": "MCI(A)"
+     }
+    ],
+    "captain": {
+     "element": 154,
+     "name": "Palmer",
+     "team": "CHE",
+     "position": "MID",
+     "price": 9.8,
+     "xpts": 5.78,
+     "fixture": "CRY(H)"
+    },
+    "vice": {
+     "element": 40,
+     "name": "Rogers",
+     "team": "CHE",
+     "position": "MID",
+     "price": 8.0,
+     "xpts": 5.3,
+     "fixture": "CRY(H)"
+    }
+   },
+   {
+    "gw": 14,
+    "chip": null,
+    "xpts": 49.08,
+    "hits": 0,
+    "free_transfers": 1,
+    "bank": 0.1,
+    "transfers_in": [],
+    "transfers_out": [],
+    "lineup": [
+     {
+      "element": 1,
+      "name": "Raya",
+      "team": "ARS",
+      "position": "GKP",
+      "price": 6.2,
+      "xpts": 2.93,
+      "fixture": "TOT(A)"
+     },
+     {
+      "element": 229,
+      "name": "Tarkowski",
+      "team": "EVE",
+      "position": "DEF",
+      "price": 6.2,
+      "xpts": 3.75,
+      "fixture": "FUL(H)"
+     },
+     {
+      "element": 330,
+      "name": "Bogle",
+      "team": "LEE",
+      "position": "DEF",
+      "price": 4.7,
+      "xpts": 3.45,
+      "fixture": "IPS(H)"
+     },
+     {
+      "element": 449,
+      "name": "Hall",
+      "team": "NEW",
+      "position": "DEF",
+      "price": 5.3,
+      "xpts": 3.2,
+      "fixture": "SUN(H)"
+     },
+     {
+      "element": 426,
+      "name": "B.Fernandes",
+      "team": "MUN",
+      "position": "MID",
+      "price": 11.7,
+      "xpts": 5.3,
+      "fixture": "COV(H)"
+     },
+     {
+      "element": 427,
+      "name": "Mbeumo",
+      "team": "MUN",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 4.69,
+      "fixture": "COV(H)"
+     },
+     {
+      "element": 154,
+      "name": "Palmer",
+      "team": "CHE",
+      "position": "MID",
+      "price": 9.8,
+      "xpts": 4.38,
+      "fixture": "LIV(H)"
+     },
+     {
+      "element": 40,
+      "name": "Rogers",
+      "team": "CHE",
+      "position": "MID",
+      "price": 8.0,
+      "xpts": 4.09,
+      "fixture": "LIV(H)"
+     },
+     {
+      "element": 480,
+      "name": "Gibbs-White",
+      "team": "NFO",
+      "position": "MID",
+      "price": 7.9,
+      "xpts": 3.91,
+      "fixture": "BHA(H)"
+     },
+     {
+      "element": 346,
+      "name": "Calvert-Lewin",
+      "team": "LEE",
+      "position": "FWD",
+      "price": 6.1,
+      "xpts": 4.56,
+      "fixture": "IPS(H)"
+     },
+     {
+      "element": 249,
+      "name": "Barry",
+      "team": "EVE",
+      "position": "FWD",
+      "price": 5.7,
+      "xpts": 3.51,
+      "fixture": "FUL(H)"
+     }
+    ],
+    "bench": [
+     {
+      "element": 109,
+      "name": "Verbruggen",
+      "team": "BHA",
+      "position": "GKP",
+      "price": 4.6,
+      "xpts": 2.65,
+      "fixture": "NFO(A)"
+     },
+     {
+      "element": 552,
+      "name": "Brobbey",
+      "team": "SUN",
+      "position": "FWD",
+      "price": 5.7,
+      "xpts": 3.47,
+      "fixture": "NEW(A)"
+     },
+     {
+      "element": 8,
+      "name": "Calafiori",
+      "team": "ARS",
+      "position": "DEF",
+      "price": 6.0,
+      "xpts": 3.13,
+      "fixture": "TOT(A)"
+     },
+     {
+      "element": 112,
+      "name": "Van Hecke",
+      "team": "TOT",
+      "position": "DEF",
+      "price": 4.9,
+      "xpts": 2.96,
+      "fixture": "ARS(H)"
+     }
+    ],
+    "captain": {
+     "element": 426,
+     "name": "B.Fernandes",
+     "team": "MUN",
+     "position": "MID",
+     "price": 11.7,
+     "xpts": 5.3,
+     "fixture": "COV(H)"
+    },
+    "vice": {
+     "element": 427,
+     "name": "Mbeumo",
+     "team": "MUN",
+     "position": "MID",
+     "price": 7.9,
+     "xpts": 4.69,
+     "fixture": "COV(H)"
+    }
+   }
+  ]
+ }
+}
